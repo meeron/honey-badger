@@ -38,7 +38,7 @@ func main() {
 			return
 		}
 
-		value, err := dbs.Get(query.Get("key"))
+		err = dbs.WriteValue(query.Get("key"), w)
 		if err == badger.ErrKeyNotFound {
 			w.WriteHeader(http.StatusUnprocessableEntity)
 			w.Write([]byte(err.Error()))
@@ -50,8 +50,6 @@ func main() {
 			w.Write([]byte(err.Error()))
 			return
 		}
-
-		w.Write(value)
 	}).Methods(http.MethodGet)
 
 	router.HandleFunc("/dbs/{name}/set", func(w http.ResponseWriter, r *http.Request) {

@@ -48,24 +48,22 @@ func (db *db_wrapp) Stats() DbStats {
 	}
 }
 
-func (db *db_wrapp) Get(key string) ([]byte, error) {
-	var result []byte
-
-	err := db.badger.View(func(txn *badger.Txn) error {
+func (db *db_wrapp) WriteValue(key string, w io.Writer) error {
+	return db.badger.View(func(txn *badger.Txn) error {
 		item, err := txn.Get([]byte(key))
 		if err != nil {
 			return err
 		}
 
-		result, err = item.ValueCopy(nil)
+		value, err := item.ValueCopy(nil)
 		if err != nil {
 			return err
 		}
 
-		return nil
-	})
+		_, err = w.Write(value)
 
-	return result, err
+		return err
+	})
 }
 
 func (db *db_wrapp) Set(key string, reader io.ReadCloser) error {
