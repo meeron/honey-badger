@@ -2,6 +2,7 @@ package db
 
 import (
 	"io"
+	"os"
 	"path"
 
 	"github.com/dgraph-io/badger/v4"
@@ -26,6 +27,10 @@ type TableInfo struct {
 	KeyCount      uint32
 	OnDiskSize    uint32
 	StaleDataSize uint32
+}
+
+type DbInfo struct {
+	Lsm int64
 }
 
 func (db *db_wrapp) Stats() DbStats {
@@ -79,6 +84,29 @@ func (db *db_wrapp) Set(key string, reader io.ReadCloser) error {
 	})
 }
 
+func Init() error {
+	entries, err := os.ReadDir(DbBasePath)
+	if err != nil {
+		return err
+	}
+
+	for _, entry := range entries {
+		name := entry.Name()
+		dbPath := path.Join(DbBasePath, name)
+
+		bdb, err := badger.Open(badger.DefaultOptions(dbPath))
+		if err != nil {
+			return err
+		}
+
+		dbs[name] = &db_wrapp{
+			badger: bdb,
+		}
+	}
+
+	return nil
+}
+
 func Get(name string) (*db_wrapp, error) {
 	db := dbs[name]
 	if db == nil {
@@ -95,4 +123,18 @@ func Get(name string) (*db_wrapp, error) {
 	}
 
 	return dbs[name], nil
+}
+
+func GetAll() map[string]DbInfo {
+	result := make(map[string]DbInfo)
+
+	for k, v := range dbs {
+		lsm, _ := v.badger.Size()
+
+		result[k] = DbInfo{
+			Lsm: lsm,
+		}
+	}
+
+	return result
 }

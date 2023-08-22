@@ -79,3 +79,9 @@ func handleSetValue(w http.ResponseWriter, r *http.Request) {
 
 	w.Write([]byte("Ok"))
 }
+
+func handleGetDbs(w http.ResponseWriter, r *http.Request) {
+	encoder := json.NewEncoder(w)
+
+	encoder.Encode(db.GetAll())
+}
