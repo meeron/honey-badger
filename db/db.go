@@ -138,3 +138,32 @@ func GetAll() map[string]DbInfo {
 
 	return result
 }
+
+func Drop(name string) error {
+	dbWrapp := dbs[name]
+	if dbWrapp == nil {
+		return nil
+	}
+
+	dbDir := dbWrapp.badger.Opts().Dir
+
+	// TODO: Block reads and writes
+	err := dbWrapp.badger.DropAll()
+	if err != nil {
+		return err
+	}
+
+	err = dbWrapp.badger.Close()
+	if err != nil {
+		return err
+	}
+
+	err = os.RemoveAll(dbDir)
+	if err != nil {
+		return err
+	}
+
+	delete(dbs, name)
+
+	return nil
+}

@@ -85,3 +85,16 @@ func handleGetDbs(w http.ResponseWriter, r *http.Request) {
 
 	encoder.Encode(db.GetAll())
 }
+
+func handleDropDb(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+
+	err := db.Drop(params["name"])
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	w.Write([]byte("Ok"))
+}
