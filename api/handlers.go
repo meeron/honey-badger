@@ -38,7 +38,9 @@ func handleGetValue(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = dbs.Get(query.Get("key"), w)
+	err = dbs.Get(query.Get("key"), w, func(meta byte) {
+		w.Header().Set("Content-Type", getContentTypeByMeta(meta))
+	})
 	if err == badger.ErrKeyNotFound {
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		w.Write([]byte(err.Error()))
@@ -70,7 +72,9 @@ func handleSetValue(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = dbs.Set(key, r.Body)
+	meta := getMetaByContentType(r.Header.Get("Content-Type"))
+
+	err = dbs.Set(key, r.Body, meta)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))

@@ -53,12 +53,14 @@ func (db *db_wrapp) Stats() DbStats {
 	}
 }
 
-func (db *db_wrapp) Get(key string, w io.Writer) error {
+func (db *db_wrapp) Get(key string, w io.Writer, metaHandler func(meta byte)) error {
 	return db.badger.View(func(txn *badger.Txn) error {
 		item, err := txn.Get([]byte(key))
 		if err != nil {
 			return err
 		}
+
+		metaHandler(item.UserMeta())
 
 		return item.Value(func(val []byte) error {
 			_, err = w.Write(val)
@@ -67,7 +69,7 @@ func (db *db_wrapp) Get(key string, w io.Writer) error {
 	})
 }
 
-func (db *db_wrapp) Set(key string, reader io.ReadCloser) error {
+func (db *db_wrapp) Set(key string, reader io.ReadCloser, meta byte) error {
 	return db.badger.Update(func(txn *badger.Txn) error {
 		defer reader.Close()
 
@@ -76,7 +78,8 @@ func (db *db_wrapp) Set(key string, reader io.ReadCloser) error {
 			return err
 		}
 
-		return txn.Set([]byte(key), data)
+		entry := badger.NewEntry([]byte(key), data).WithMeta(meta)
+		return txn.SetEntry(entry)
 	})
 }
 
