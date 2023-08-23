@@ -38,7 +38,7 @@ func handleGetValue(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = dbs.WriteValue(query.Get("key"), w)
+	err = dbs.Get(query.Get("key"), w)
 	if err == badger.ErrKeyNotFound {
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		w.Write([]byte(err.Error()))

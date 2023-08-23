@@ -53,21 +53,17 @@ func (db *db_wrapp) Stats() DbStats {
 	}
 }
 
-func (db *db_wrapp) WriteValue(key string, w io.Writer) error {
+func (db *db_wrapp) Get(key string, w io.Writer) error {
 	return db.badger.View(func(txn *badger.Txn) error {
 		item, err := txn.Get([]byte(key))
 		if err != nil {
 			return err
 		}
 
-		value, err := item.ValueCopy(nil)
-		if err != nil {
+		return item.Value(func(val []byte) error {
+			_, err = w.Write(val)
 			return err
-		}
-
-		_, err = w.Write(value)
-
-		return err
+		})
 	})
 }
 

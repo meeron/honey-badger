@@ -35,8 +35,28 @@ func setValue(num int) {
 
 }
 
+func getValue(num int) {
+	key := rand.Intn(num + 1)
+	url := fmt.Sprintf("http://localhost:8080/dbs/%s/entry?key=%d", DbName, key)
+
+	res, err := http.Get(url)
+	if err != nil {
+		panic(err)
+	}
+
+	if res.StatusCode == http.StatusInternalServerError {
+		panic(errors.New("status is not ok"))
+	}
+}
+
 func BenchmarkSetValue(t *testing.B) {
 	for i := 0; i < t.N; i++ {
 		setValue(i)
+	}
+}
+
+func BenchmarkGetValue(t *testing.B) {
+	for i := 0; i < t.N; i++ {
+		getValue(i)
 	}
 }
