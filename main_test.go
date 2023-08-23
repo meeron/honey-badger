@@ -15,7 +15,7 @@ const DbName = "bench"
 
 func setValue(num int) {
 	key := rand.Intn(num + 1)
-	url := fmt.Sprintf("http://localhost:8080/dbs/%s/set?key=%d", DbName, key)
+	url := fmt.Sprintf("http://localhost:8080/dbs/%s/entry?key=%d", DbName, key)
 
 	buffer := make([]byte, BodySize)
 	_, err := crand.Read(buffer)

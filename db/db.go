@@ -88,6 +88,12 @@ func (db *db_wrapp) Sync() error {
 	return db.badger.Sync()
 }
 
+func (db *db_wrapp) DeleteKey(key string) error {
+	return db.badger.Update(func(txn *badger.Txn) error {
+		return txn.Delete([]byte(key))
+	})
+}
+
 func Init() error {
 	entries, err := os.ReadDir(DbBasePath)
 	if err != nil {

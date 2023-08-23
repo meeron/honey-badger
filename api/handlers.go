@@ -118,3 +118,24 @@ func handleDbSync(w http.ResponseWriter, r *http.Request) {
 
 	w.Write([]byte("Ok"))
 }
+
+func handleDeleteKey(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+	query := r.URL.Query()
+
+	dbs, err := db.Get(params["name"])
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	err = dbs.DeleteKey(query.Get("key"))
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	w.Write([]byte("Ok"))
+}
