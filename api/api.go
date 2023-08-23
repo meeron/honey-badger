@@ -15,6 +15,7 @@ func Run(addr string) error {
 	router.HandleFunc("/dbs/{name}", handleDropDb).Methods(http.MethodDelete)
 	router.HandleFunc("/dbs/{name}/get", handleGetValue).Methods(http.MethodGet)
 	router.HandleFunc("/dbs/{name}/set", handleSetValue).Methods(http.MethodPost)
+	router.HandleFunc("/dbs/{name}/sync", handleDbSync).Methods(http.MethodPost)
 
 	return http.ListenAndServe(addr, router)
 }

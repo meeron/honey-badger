@@ -84,6 +84,10 @@ func (db *db_wrapp) Set(key string, reader io.ReadCloser) error {
 	})
 }
 
+func (db *db_wrapp) Sync() error {
+	return db.badger.Sync()
+}
+
 func Init() error {
 	entries, err := os.ReadDir(DbBasePath)
 	if err != nil {

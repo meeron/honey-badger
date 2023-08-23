@@ -98,3 +98,23 @@ func handleDropDb(w http.ResponseWriter, r *http.Request) {
 
 	w.Write([]byte("Ok"))
 }
+
+func handleDbSync(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+
+	dbs, err := db.Get(params["name"])
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	err = dbs.Sync()
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	w.Write([]byte("Ok"))
+}
