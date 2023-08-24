@@ -3,6 +3,7 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"strconv"
 
 	"github.com/dgraph-io/badger/v4"
 	"github.com/gorilla/mux"
@@ -66,6 +67,15 @@ func handleSetValue(w http.ResponseWriter, r *http.Request) {
 	query := r.URL.Query()
 
 	key := query.Get("key")
+	ttlQ := query.Get("ttl")
+
+	ttl, err := strconv.Atoi(ttlQ)
+	if ttlQ != "" && err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("invalid ttl"))
+		return
+	}
+
 	if key == "" {
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		w.Write([]byte(badger.ErrEmptyKey.Error()))
@@ -81,7 +91,7 @@ func handleSetValue(w http.ResponseWriter, r *http.Request) {
 
 	meta := getMetaByContentType(r.Header.Get("Content-Type"))
 
-	err = dbs.Set(key, r.Body, meta)
+	err = dbs.Set(key, r.Body, meta, uint(ttl))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))

@@ -4,6 +4,7 @@ import (
 	"io"
 	"os"
 	"path"
+	"time"
 
 	"github.com/dgraph-io/badger/v4"
 )
@@ -72,7 +73,7 @@ func (db *db_wrapp) Get(key string) ([]byte, byte, error) {
 	return value, meta, nil
 }
 
-func (db *db_wrapp) Set(key string, reader io.ReadCloser, meta byte) error {
+func (db *db_wrapp) Set(key string, reader io.ReadCloser, meta byte, ttl uint) error {
 	return db.badger.Update(func(txn *badger.Txn) error {
 		defer reader.Close()
 
@@ -82,6 +83,11 @@ func (db *db_wrapp) Set(key string, reader io.ReadCloser, meta byte) error {
 		}
 
 		entry := badger.NewEntry([]byte(key), data).WithMeta(meta)
+
+		if ttl > 0 {
+			entry = entry.WithTTL(time.Duration(ttl) * time.Second)
+		}
+
 		return txn.SetEntry(entry)
 	})
 }
