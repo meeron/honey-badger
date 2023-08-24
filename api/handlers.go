@@ -38,14 +38,21 @@ func handleGetValue(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = dbs.Get(query.Get("key"), w, func(meta byte) {
-		w.Header().Set("Content-Type", getContentTypeByMeta(meta))
-	})
+	value, meta, err := dbs.Get(query.Get("key"))
 	if err == badger.ErrKeyNotFound {
 		w.WriteHeader(http.StatusUnprocessableEntity)
 		w.Write([]byte(err.Error()))
 		return
 	}
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	w.Header().Set("Content-Type", getContentTypeByMeta(meta))
+	_, err = w.Write(value)
 
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

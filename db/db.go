@@ -53,20 +53,23 @@ func (db *db_wrapp) Stats() DbStats {
 	}
 }
 
-func (db *db_wrapp) Get(key string, w io.Writer, metaHandler func(meta byte)) error {
-	return db.badger.View(func(txn *badger.Txn) error {
-		item, err := txn.Get([]byte(key))
-		if err != nil {
-			return err
-		}
+func (db *db_wrapp) Get(key string) ([]byte, byte, error) {
+	txn := db.badger.NewTransaction(false)
+	defer txn.Discard()
 
-		metaHandler(item.UserMeta())
+	item, err := txn.Get([]byte(key))
+	if err != nil {
+		return nil, 0, err
+	}
 
-		return item.Value(func(val []byte) error {
-			_, err = w.Write(val)
-			return err
-		})
-	})
+	meta := item.UserMeta()
+	value, err := item.ValueCopy(nil)
+
+	if err != nil {
+		return nil, 0, err
+	}
+
+	return value, meta, nil
 }
 
 func (db *db_wrapp) Set(key string, reader io.ReadCloser, meta byte) error {
