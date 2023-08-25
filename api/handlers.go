@@ -140,7 +140,7 @@ func handleDbSync(w http.ResponseWriter, r *http.Request) {
 	w.Write([]byte("Ok"))
 }
 
-func handleDeleteKey(w http.ResponseWriter, r *http.Request) {
+func handleDeleteWithKey(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	query := r.URL.Query()
 
@@ -151,7 +151,36 @@ func handleDeleteKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = dbs.DeleteKey(query.Get("key"))
+	err = dbs.DeleteByKey(query.Get("key"))
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	w.Write([]byte("Ok"))
+}
+
+func handleDeleteWithPrefix(w http.ResponseWriter, r *http.Request) {
+	params := mux.Vars(r)
+
+	query := r.URL.Query()
+	prefix := query.Get("prefix")
+
+	if prefix == "" {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte("Prefix cannot be empty"))
+		return
+	}
+
+	dbs, err := db.Get(params["name"])
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	err = dbs.DeleteByPrefix(prefix)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))

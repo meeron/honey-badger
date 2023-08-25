@@ -96,10 +96,14 @@ func (db *db_wrapp) Sync() error {
 	return db.badger.Sync()
 }
 
-func (db *db_wrapp) DeleteKey(key string) error {
+func (db *db_wrapp) DeleteByKey(key string) error {
 	return db.badger.Update(func(txn *badger.Txn) error {
 		return txn.Delete([]byte(key))
 	})
+}
+
+func (db *db_wrapp) DeleteByPrefix(prefix string) error {
+	return db.badger.DropPrefix([]byte(prefix))
 }
 
 func Init() error {
