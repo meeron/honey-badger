@@ -155,9 +155,9 @@ func Init() error {
 func Get(name string) (*db_wrapp, error) {
 	db := dbs[name]
 	if db == nil {
-		dbPath := path.Join(DbBasePath, name)
+		opt := badger.DefaultOptions("").WithInMemory(true)
 
-		bdb, err := badger.Open(badger.DefaultOptions(dbPath))
+		bdb, err := badger.Open(opt)
 		if err != nil {
 			return nil, err
 		}
