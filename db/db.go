@@ -4,7 +4,9 @@ import (
 	"errors"
 	"log"
 	"os"
+	"os/signal"
 	"path"
+	"syscall"
 	"time"
 
 	"github.com/dgraph-io/badger/v4"
@@ -13,7 +15,10 @@ import (
 const DbBasePath = "./data"
 const DbGCPeriodMin = 60
 
-var dbs = make(map[string]*Database)
+var (
+	dbs      = make(map[string]*Database)
+	gcTicker = time.NewTicker(24 * time.Hour) // Ticker will be reset for proper duration on init
+)
 
 type DbInfo struct {
 	Lsm      int64
@@ -54,6 +59,7 @@ func Init() error {
 	}
 
 	startGCRoutine()
+	notifySignal()
 
 	return nil
 }
@@ -148,10 +154,10 @@ func Create(options NewDbOptions) (*Database, error) {
 }
 
 func startGCRoutine() {
-	ticker := time.NewTicker(DbGCPeriodMin * time.Minute)
+	gcTicker.Reset(DbGCPeriodMin * time.Minute)
 
 	go func() {
-		for range ticker.C {
+		for range gcTicker.C {
 			for name, itm := range dbs {
 				log.Printf("Running GC on database '%s'...", name)
 				err := itm.b.RunValueLogGC(0.7)
@@ -160,5 +166,27 @@ func startGCRoutine() {
 				}
 			}
 		}
+	}()
+}
+
+func notifySignal() {
+	signalChannel := make(chan os.Signal, 1)
+	signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		sig := <-signalChannel
+		log.Printf("%s", sig)
+
+		gcTicker.Stop()
+		log.Print("GC ticker closed")
+
+		for name, db := range dbs {
+			log.Printf("Closing database '%s'", name)
+			if err := db.b.Close(); err != nil {
+				log.Print(err)
+			}
+		}
+
+		os.Exit(0)
 	}()
 }
