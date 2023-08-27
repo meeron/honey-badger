@@ -17,7 +17,7 @@ func handleHome(w http.ResponseWriter, r *http.Request) {
 func handleGetDbStats(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 
-	dbs, err := db.Get(params["name"])
+	db, err := db.Get(params["name"])
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
@@ -25,21 +25,21 @@ func handleGetDbStats(w http.ResponseWriter, r *http.Request) {
 	}
 
 	encoder := json.NewEncoder(w)
-	encoder.Encode(dbs.Stats())
+	encoder.Encode(db.Stats())
 }
 
 func handleGetValue(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	query := r.URL.Query()
 
-	dbs, err := db.Get(params["name"])
+	db, err := db.Get(params["name"])
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 		return
 	}
 
-	value, meta, err := dbs.Get(query.Get("key"))
+	value, meta, err := db.Get(query.Get("key"))
 	if err == badger.ErrKeyNotFound {
 		w.WriteHeader(http.StatusNotFound)
 		w.Write([]byte(err.Error()))
@@ -82,7 +82,7 @@ func handleSetValue(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dbs, err := db.Get(params["name"])
+	db, err := db.Get(params["name"])
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
@@ -91,7 +91,7 @@ func handleSetValue(w http.ResponseWriter, r *http.Request) {
 
 	meta := getMetaByContentType(r.Header.Get("Content-Type"))
 
-	err = dbs.Set(key, r.Body, meta, uint(ttl))
+	err = db.Set(key, r.Body, meta, uint(ttl))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
@@ -123,14 +123,14 @@ func handleDropDb(w http.ResponseWriter, r *http.Request) {
 func handleDbSync(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 
-	dbs, err := db.Get(params["name"])
+	db, err := db.Get(params["name"])
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 		return
 	}
 
-	err = dbs.Sync()
+	err = db.Sync()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
@@ -144,14 +144,14 @@ func handleDeleteWithKey(w http.ResponseWriter, r *http.Request) {
 	params := mux.Vars(r)
 	query := r.URL.Query()
 
-	dbs, err := db.Get(params["name"])
+	db, err := db.Get(params["name"])
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 		return
 	}
 
-	err = dbs.DeleteByKey(query.Get("key"))
+	err = db.DeleteByKey(query.Get("key"))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
@@ -173,14 +173,14 @@ func handleDeleteWithPrefix(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dbs, err := db.Get(params["name"])
+	db, err := db.Get(params["name"])
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
 		return
 	}
 
-	err = dbs.DeleteByPrefix(prefix)
+	err = db.DeleteByPrefix(prefix)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
@@ -207,7 +207,7 @@ func handleCreateDb(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	dbs, err := db.Create(options)
+	db, err := db.Create(options)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
@@ -216,7 +216,7 @@ func handleCreateDb(w http.ResponseWriter, r *http.Request) {
 
 	encoder := json.NewEncoder(w)
 
-	err = encoder.Encode(dbs.Stats())
+	err = encoder.Encode(db.Stats())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		w.Write([]byte(err.Error()))
