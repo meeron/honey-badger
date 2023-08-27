@@ -11,7 +11,7 @@ import (
 )
 
 const BodySize = 256
-const DbName = "mem"
+const DbName = "bench"
 
 func setValue(num int) {
 	key := rand.Intn(num + 1)

@@ -1,6 +1,7 @@
 package api
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -20,5 +21,6 @@ func Run(addr string) error {
 	router.HandleFunc("/dbs/{name}/entry", handleDeleteWithKey).Methods(http.MethodDelete)
 	router.HandleFunc("/dbs/{name}/entries", handleDeleteWithPrefix).Methods(http.MethodDelete)
 
+	log.Printf("Listening on %s...", addr)
 	return http.ListenAndServe(addr, router)
 }

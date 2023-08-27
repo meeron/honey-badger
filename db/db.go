@@ -3,6 +3,7 @@ package db
 import (
 	"errors"
 	"io"
+	"log"
 	"os"
 	"path"
 	"time"
@@ -11,10 +12,12 @@ import (
 )
 
 const DbBasePath = "./data"
+const DbGCPeriodMin = 60
 
 var dbs = make(map[string]*db_wrapp)
 
 type db_wrapp struct {
+	name   string
 	badger *badger.DB
 }
 
@@ -145,9 +148,12 @@ func Init() error {
 		}
 
 		dbs[name] = &db_wrapp{
+			name:   name,
 			badger: bdb,
 		}
 	}
+
+	startGCRoutine()
 
 	return nil
 }
@@ -155,15 +161,12 @@ func Init() error {
 func Get(name string) (*db_wrapp, error) {
 	db := dbs[name]
 	if db == nil {
-		opt := badger.DefaultOptions("").WithInMemory(true)
-
-		bdb, err := badger.Open(opt)
+		_, err := Create(NewDbOptions{
+			Name:     name,
+			InMemory: true,
+		})
 		if err != nil {
 			return nil, err
-		}
-
-		dbs[name] = &db_wrapp{
-			badger: bdb,
 		}
 	}
 
@@ -237,8 +240,25 @@ func Create(options NewDbOptions) (*db_wrapp, error) {
 	}
 
 	dbs[options.Name] = &db_wrapp{
+		name:   options.Name,
 		badger: bdb,
 	}
 
 	return dbs[options.Name], nil
+}
+
+func startGCRoutine() {
+	ticker := time.NewTicker(DbGCPeriodMin * time.Minute)
+
+	go func() {
+		for range ticker.C {
+			for _, itm := range dbs {
+				log.Printf("Running GC on database '%s'...", itm.name)
+				err := itm.badger.RunValueLogGC(0.7)
+				if err != nil {
+					log.Print(err)
+				}
+			}
+		}
+	}()
 }
