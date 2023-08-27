@@ -11,7 +11,7 @@ import (
 )
 
 const BodySize = 256
-const DbName = "bench"
+const DbName = "mem"
 
 func setValue(num int) {
 	key := rand.Intn(num + 1)
@@ -24,7 +24,7 @@ func setValue(num int) {
 	}
 
 	body := bytes.NewReader(buffer)
-	res, err := http.Post(url, "text/plain", body)
+	res, err := http.Post(url, "application/octet-stream", body)
 	if err != nil {
 		panic(err)
 	}

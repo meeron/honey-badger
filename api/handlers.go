@@ -189,3 +189,37 @@ func handleDeleteWithPrefix(w http.ResponseWriter, r *http.Request) {
 
 	w.Write([]byte("Ok"))
 }
+
+func handleCreateDb(w http.ResponseWriter, r *http.Request) {
+	decoder := json.NewDecoder(r.Body)
+
+	options := db.NewDbOptions{}
+
+	if err := decoder.Decode(&options); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	if err := options.Validate(); err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	dbs, err := db.Create(options)
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+
+	encoder := json.NewEncoder(w)
+
+	err = encoder.Encode(dbs.Stats())
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		w.Write([]byte(err.Error()))
+		return
+	}
+}

@@ -1,6 +1,7 @@
 package db
 
 import (
+	"errors"
 	"io"
 	"os"
 	"path"
@@ -18,9 +19,10 @@ type db_wrapp struct {
 }
 
 type DbStats struct {
-	Lsm    int64
-	Vlog   int64
-	Tables []TableInfo
+	Lsm      int64
+	Vlog     int64
+	InMemory bool
+	Tables   []TableInfo
 }
 
 type TableInfo struct {
@@ -31,11 +33,26 @@ type TableInfo struct {
 }
 
 type DbInfo struct {
-	Lsm int64
+	Lsm      int64
+	InMemory bool
+}
+
+type NewDbOptions struct {
+	Name     string
+	InMemory bool
+}
+
+func (o NewDbOptions) Validate() error {
+	if o.Name == "" {
+		return errors.New("Name cannot be empty")
+	}
+
+	return nil
 }
 
 func (db *db_wrapp) Stats() DbStats {
 	lsm, vlog := db.badger.Size()
+	options := db.badger.Opts()
 
 	tables := make([]TableInfo, 0)
 	for _, t := range db.badger.Tables() {
@@ -48,9 +65,10 @@ func (db *db_wrapp) Stats() DbStats {
 	}
 
 	return DbStats{
-		Lsm:    lsm,
-		Vlog:   vlog,
-		Tables: tables,
+		Lsm:      lsm,
+		Vlog:     vlog,
+		InMemory: options.InMemory,
+		Tables:   tables,
 	}
 }
 
@@ -93,6 +111,11 @@ func (db *db_wrapp) Set(key string, reader io.ReadCloser, meta byte, ttl uint) e
 }
 
 func (db *db_wrapp) Sync() error {
+	// Cannot sync in memory databases
+	if db.badger.Opts().InMemory {
+		return nil
+	}
+
 	return db.badger.Sync()
 }
 
@@ -152,9 +175,11 @@ func GetAll() map[string]DbInfo {
 
 	for k, v := range dbs {
 		lsm, _ := v.badger.Size()
+		options := v.badger.Opts()
 
 		result[k] = DbInfo{
-			Lsm: lsm,
+			Lsm:      lsm,
+			InMemory: options.InMemory,
 		}
 	}
 
@@ -188,4 +213,32 @@ func Drop(name string) error {
 	delete(dbs, name)
 
 	return nil
+}
+
+func Create(options NewDbOptions) (*db_wrapp, error) {
+	if dbs[options.Name] != nil {
+		return nil, errors.New("Db already exists")
+	}
+
+	var opt badger.Options
+
+	if !options.InMemory {
+		dbPath := path.Join(DbBasePath, options.Name)
+
+		opt = badger.DefaultOptions(dbPath)
+	} else {
+		opt = badger.DefaultOptions("").
+			WithInMemory(options.InMemory)
+	}
+
+	bdb, err := badger.Open(opt)
+	if err != nil {
+		return nil, err
+	}
+
+	dbs[options.Name] = &db_wrapp{
+		badger: bdb,
+	}
+
+	return dbs[options.Name], nil
 }
