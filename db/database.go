@@ -12,17 +12,18 @@ type Database struct {
 }
 
 type DbStats struct {
-	Lsm      int64
-	Vlog     int64
-	InMemory bool
-	Tables   []TableInfo
-}
-
-type TableInfo struct {
-	Id            uint64
+	Lsm           int64
+	Vlog          int64
+	InMemory      bool
 	KeyCount      uint32
+	Size          int64
 	OnDiskSize    uint32
 	StaleDataSize uint32
+	Metrics       string
+}
+
+type DbMetrics struct {
+	KeysAdded uint64
 }
 
 func (db *Database) Get(key string) ([]byte, byte, error) {
@@ -47,23 +48,26 @@ func (db *Database) Get(key string) ([]byte, byte, error) {
 func (db *Database) Stats() DbStats {
 	lsm, vlog := db.b.Size()
 	options := db.b.Opts()
+	metrics := db.b.BlockCacheMetrics()
 
-	tables := make([]TableInfo, 0)
-	for _, t := range db.b.Tables() {
-		tables = append(tables, TableInfo{
-			Id:            t.ID,
-			KeyCount:      t.KeyCount,
-			OnDiskSize:    t.OnDiskSize,
-			StaleDataSize: t.StaleDataSize,
-		})
-	}
-
-	return DbStats{
+	stats := DbStats{
 		Lsm:      lsm,
 		Vlog:     vlog,
 		InMemory: options.InMemory,
-		Tables:   tables,
+		Metrics:  metrics.String(),
 	}
+
+	for _, t := range db.b.Tables() {
+		stats.KeyCount += t.KeyCount
+		stats.OnDiskSize += t.OnDiskSize
+		stats.StaleDataSize += t.StaleDataSize
+	}
+
+	for _, l := range db.b.Levels() {
+		stats.Size += l.Size
+	}
+
+	return stats
 }
 
 func (db *Database) Set(key string, reader io.ReadCloser, meta byte, ttl uint) error {
