@@ -1,10 +1,13 @@
 package db
 
 import (
+	"context"
+	"encoding/binary"
 	"io"
 	"time"
 
 	"github.com/dgraph-io/badger/v4"
+	"github.com/dgraph-io/ristretto/z"
 )
 
 type Database struct {
@@ -106,4 +109,31 @@ func (db *Database) DeleteByKey(key string) error {
 
 func (db *Database) DeleteByPrefix(prefix string) error {
 	return db.b.DropPrefix([]byte(prefix))
+}
+
+func (db *Database) GetByPrefix(prefix string, w io.Writer) error {
+	stream := db.b.NewStream()
+
+	stream.Prefix = []byte(prefix)
+	stream.Send = func(buf *z.Buffer) error {
+		list, err := badger.BufferToKVList(buf)
+		if err != nil {
+			return err
+		}
+
+		sizeBytes := make([]byte, 4)
+		for _, kv := range list.Kv {
+			binary.LittleEndian.PutUint32(sizeBytes, uint32(len(kv.Key)))
+			w.Write(sizeBytes)
+			w.Write(kv.Key)
+
+			binary.LittleEndian.PutUint32(sizeBytes, uint32(len(kv.Value)))
+			w.Write(sizeBytes)
+			w.Write(kv.Value)
+		}
+
+		return nil
+	}
+
+	return stream.Orchestrate(context.TODO())
 }
