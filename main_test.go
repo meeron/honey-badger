@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	crand "crypto/rand"
 	"fmt"
 	"log"
 	"math/rand"
@@ -18,10 +19,16 @@ const DbName = "bench"
 func setValue(client pb.HoneyBadgerClient) {
 	key := rand.Intn(2147483647)
 
+	buffer := make([]byte, BodySize)
+	_, err := crand.Read(buffer)
+	if err != nil {
+		panic(err)
+	}
+
 	res, err := client.Set(context.TODO(), &pb.SetRequest{
 		Db:   DbName,
 		Key:  fmt.Sprintf("%d", key),
-		Data: nil,
+		Data: buffer,
 	})
 
 	if err != nil {

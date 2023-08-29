@@ -13,15 +13,17 @@ message SetRequest {
     string db = 1;
     string key = 2;
     bytes data = 3;
+    optional int32 ttl = 4;
 }
 
 message GetRequest {
     string db = 1;
-    string key = 2; 
+    string key = 2;
 }
 
 message GetResult {
-    bytes data = 1;
+    bool hit = 1;
+    bytes data = 2;
 }
 
 message Result {

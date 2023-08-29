@@ -29,23 +29,27 @@ type DbMetrics struct {
 	KeysAdded uint64
 }
 
-func (db *Database) Get(key string) ([]byte, byte, error) {
+func (db *Database) Get(key string) ([]byte, bool, error) {
 	txn := db.b.NewTransaction(false)
 	defer txn.Discard()
 
 	item, err := txn.Get([]byte(key))
-	if err != nil {
-		return nil, 0, err
+
+	if err == badger.ErrKeyNotFound {
+		return make([]byte, 0), false, nil
 	}
 
-	meta := item.UserMeta()
+	if err != nil {
+		return nil, false, err
+	}
+
 	value, err := item.ValueCopy(nil)
 
 	if err != nil {
-		return nil, 0, err
+		return nil, false, err
 	}
 
-	return value, meta, nil
+	return value, true, nil
 }
 
 func (db *Database) Stats() DbStats {
@@ -73,15 +77,8 @@ func (db *Database) Stats() DbStats {
 	return stats
 }
 
-func (db *Database) Set(key string, reader io.ReadCloser, meta byte, ttl uint) error {
+func (db *Database) Set(key string, data []byte, meta byte, ttl uint) error {
 	return db.b.Update(func(txn *badger.Txn) error {
-		defer reader.Close()
-
-		data, err := io.ReadAll(reader)
-		if err != nil {
-			return err
-		}
-
 		entry := badger.NewEntry([]byte(key), data).WithMeta(meta)
 
 		if ttl > 0 {

@@ -3,9 +3,7 @@ package api
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
 
-	"github.com/dgraph-io/badger/v4"
 	"github.com/gorilla/mux"
 	"github.com/meeron/honey-badger/db"
 )
@@ -26,79 +24,6 @@ func handleGetDbStats(w http.ResponseWriter, r *http.Request) {
 
 	encoder := json.NewEncoder(w)
 	encoder.Encode(db.Stats())
-}
-
-func handleGetValue(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	query := r.URL.Query()
-
-	db, err := db.Get(params["name"])
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
-		return
-	}
-
-	value, meta, err := db.Get(query.Get("key"))
-	if err == badger.ErrKeyNotFound {
-		w.WriteHeader(http.StatusNotFound)
-		w.Write([]byte(err.Error()))
-		return
-	}
-
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
-		return
-	}
-
-	w.Header().Set("Content-Type", getContentTypeByMeta(meta))
-	_, err = w.Write(value)
-
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
-		return
-	}
-}
-
-func handleSetValue(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-	query := r.URL.Query()
-
-	key := query.Get("key")
-	ttlQ := query.Get("ttl")
-
-	ttl, err := strconv.Atoi(ttlQ)
-	if ttlQ != "" && err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("invalid ttl"))
-		return
-	}
-
-	if key == "" {
-		w.WriteHeader(http.StatusUnprocessableEntity)
-		w.Write([]byte(badger.ErrEmptyKey.Error()))
-		return
-	}
-
-	db, err := db.Get(params["name"])
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
-		return
-	}
-
-	meta := getMetaByContentType(r.Header.Get("Content-Type"))
-
-	err = db.Set(key, r.Body, meta, uint(ttl))
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
-		return
-	}
-
-	w.Write([]byte("Ok"))
 }
 
 func handleGetDbs(w http.ResponseWriter, r *http.Request) {
