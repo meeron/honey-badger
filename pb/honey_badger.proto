@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+option go_package = "github.com/meeron/honey-badger/pb";
+
+package pb;
+
+service HoneyBadger {
+    rpc Set(SetRequest) returns (Result) {}
+    rpc Get(GetRequest) returns (GetResult) {}
+}
+
+message SetRequest {
+    string db = 1;
+    string key = 2;
+    bytes data = 3;
+}
+
+message GetRequest {
+    string db = 1;
+    string key = 2; 
+}
+
+message GetResult {
+    bytes data = 1;
+}
+
+message Result {
+    string code = 1;
+    optional string error = 2;
+}
