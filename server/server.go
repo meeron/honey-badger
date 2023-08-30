@@ -22,7 +22,7 @@ func (s *HoneyBadgerServer) Set(ctx context.Context, in *pb.SetRequest) (*pb.Res
 		ttl = uint(*in.Ttl)
 	}
 
-	err = db.Set(in.Key, in.Data, 0, ttl)
+	err = db.Set(in.Key, in.Data, ttl)
 	if err != nil {
 		return nil, err
 	}

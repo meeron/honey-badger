@@ -18,7 +18,6 @@ func Run(addr string) error {
 	router.HandleFunc("/dbs/{name}/sync", handleDbSync).Methods(http.MethodPost)
 	router.HandleFunc("/dbs/{name}/entry", handleDeleteWithKey).Methods(http.MethodDelete)
 	router.HandleFunc("/dbs/{name}/entries", handleDeleteWithPrefix).Methods(http.MethodDelete)
-	router.HandleFunc("/dbs/{name}/entries", handleGetByPrefix).Methods(http.MethodGet)
 
 	log.Printf("Listening on %s...", addr)
 	return http.ListenAndServe(addr, router)

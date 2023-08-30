@@ -2,8 +2,6 @@ package db
 
 import (
 	"context"
-	"encoding/binary"
-	"io"
 	"time"
 
 	"github.com/dgraph-io/badger/v4"
@@ -77,9 +75,9 @@ func (db *Database) Stats() DbStats {
 	return stats
 }
 
-func (db *Database) Set(key string, data []byte, meta byte, ttl uint) error {
+func (db *Database) Set(key string, data []byte, ttl uint) error {
 	return db.b.Update(func(txn *badger.Txn) error {
-		entry := badger.NewEntry([]byte(key), data).WithMeta(meta)
+		entry := badger.NewEntry([]byte(key), data)
 
 		if ttl > 0 {
 			entry = entry.WithTTL(time.Duration(ttl) * time.Second)
@@ -108,9 +106,12 @@ func (db *Database) DeleteByPrefix(prefix string) error {
 	return db.b.DropPrefix([]byte(prefix))
 }
 
-func (db *Database) GetByPrefix(prefix string, w io.Writer) error {
+func (db *Database) GetByPrefix(ctx context.Context, prefix string) (map[string][]byte, error) {
+	res := make(map[string][]byte)
+
 	stream := db.b.NewStream()
 
+	stream.LogPrefix = "GetByPrefix"
 	stream.Prefix = []byte(prefix)
 	stream.Send = func(buf *z.Buffer) error {
 		list, err := badger.BufferToKVList(buf)
@@ -118,19 +119,12 @@ func (db *Database) GetByPrefix(prefix string, w io.Writer) error {
 			return err
 		}
 
-		sizeBytes := make([]byte, 4)
 		for _, kv := range list.Kv {
-			binary.LittleEndian.PutUint32(sizeBytes, uint32(len(kv.Key)))
-			w.Write(sizeBytes)
-			w.Write(kv.Key)
-
-			binary.LittleEndian.PutUint32(sizeBytes, uint32(len(kv.Value)))
-			w.Write(sizeBytes)
-			w.Write(kv.Value)
+			res[string(kv.Key)] = kv.Value
 		}
 
 		return nil
 	}
 
-	return stream.Orchestrate(context.TODO())
+	return res, stream.Orchestrate(ctx)
 }

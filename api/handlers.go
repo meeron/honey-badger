@@ -148,30 +148,3 @@ func handleCreateDb(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 }
-
-func handleGetByPrefix(w http.ResponseWriter, r *http.Request) {
-	params := mux.Vars(r)
-
-	query := r.URL.Query()
-	prefix := query.Get("prefix")
-
-	if prefix == "" {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Prefix cannot be empty"))
-		return
-	}
-
-	db, err := db.Get(params["name"])
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
-		return
-	}
-
-	//w.Header().Set("Content-Type", "text/plain")
-	if err := db.GetByPrefix(prefix, w); err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
-		return
-	}
-}
