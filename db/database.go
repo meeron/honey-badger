@@ -2,8 +2,6 @@ package db
 
 import (
 	"context"
-	"encoding/binary"
-	"io"
 	"time"
 
 	"github.com/dgraph-io/badger/v4"
@@ -29,23 +27,27 @@ type DbMetrics struct {
 	KeysAdded uint64
 }
 
-func (db *Database) Get(key string) ([]byte, byte, error) {
+func (db *Database) Get(key string) ([]byte, bool, error) {
 	txn := db.b.NewTransaction(false)
 	defer txn.Discard()
 
 	item, err := txn.Get([]byte(key))
-	if err != nil {
-		return nil, 0, err
+
+	if err == badger.ErrKeyNotFound {
+		return make([]byte, 0), false, nil
 	}
 
-	meta := item.UserMeta()
+	if err != nil {
+		return nil, false, err
+	}
+
 	value, err := item.ValueCopy(nil)
 
 	if err != nil {
-		return nil, 0, err
+		return nil, false, err
 	}
 
-	return value, meta, nil
+	return value, true, nil
 }
 
 func (db *Database) Stats() DbStats {
@@ -73,16 +75,9 @@ func (db *Database) Stats() DbStats {
 	return stats
 }
 
-func (db *Database) Set(key string, reader io.ReadCloser, meta byte, ttl uint) error {
+func (db *Database) Set(key string, data []byte, ttl uint) error {
 	return db.b.Update(func(txn *badger.Txn) error {
-		defer reader.Close()
-
-		data, err := io.ReadAll(reader)
-		if err != nil {
-			return err
-		}
-
-		entry := badger.NewEntry([]byte(key), data).WithMeta(meta)
+		entry := badger.NewEntry([]byte(key), data)
 
 		if ttl > 0 {
 			entry = entry.WithTTL(time.Duration(ttl) * time.Second)
@@ -111,9 +106,12 @@ func (db *Database) DeleteByPrefix(prefix string) error {
 	return db.b.DropPrefix([]byte(prefix))
 }
 
-func (db *Database) GetByPrefix(prefix string, w io.Writer) error {
+func (db *Database) GetByPrefix(ctx context.Context, prefix string) (map[string][]byte, error) {
+	res := make(map[string][]byte)
+
 	stream := db.b.NewStream()
 
+	stream.LogPrefix = "GetByPrefix"
 	stream.Prefix = []byte(prefix)
 	stream.Send = func(buf *z.Buffer) error {
 		list, err := badger.BufferToKVList(buf)
@@ -121,19 +119,12 @@ func (db *Database) GetByPrefix(prefix string, w io.Writer) error {
 			return err
 		}
 
-		sizeBytes := make([]byte, 4)
 		for _, kv := range list.Kv {
-			binary.LittleEndian.PutUint32(sizeBytes, uint32(len(kv.Key)))
-			w.Write(sizeBytes)
-			w.Write(kv.Key)
-
-			binary.LittleEndian.PutUint32(sizeBytes, uint32(len(kv.Value)))
-			w.Write(sizeBytes)
-			w.Write(kv.Value)
+			res[string(kv.Key)] = kv.Value
 		}
 
 		return nil
 	}
 
-	return stream.Orchestrate(context.TODO())
+	return res, stream.Orchestrate(ctx)
 }
