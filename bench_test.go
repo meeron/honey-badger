@@ -43,7 +43,7 @@ func setValue(client pb.HoneyBadgerClient) {
 func getValue(client pb.HoneyBadgerClient) {
 	key := rand.Intn(2147483647)
 
-	_, err := client.Get(context.TODO(), &pb.GetRequest{
+	_, err := client.Get(context.TODO(), &pb.KeyRequest{
 		Db:  DbName,
 		Key: fmt.Sprintf("%d", key),
 	})

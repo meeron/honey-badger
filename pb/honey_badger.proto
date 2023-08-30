@@ -6,7 +6,10 @@ package pb;
 
 service HoneyBadger {
     rpc Set(SetRequest) returns (Result) {}
-    rpc Get(GetRequest) returns (GetResult) {}
+    rpc Get(KeyRequest) returns (GetResult) {}
+    rpc GetByPrefix(PrefixRequest) returns (PrefixResult) {}
+    rpc Delete(KeyRequest) returns (Result) {}
+    rpc DeleteByPrefix(PrefixRequest) returns (Result) {}
 }
 
 message SetRequest {
@@ -16,7 +19,7 @@ message SetRequest {
     optional int32 ttl = 4;
 }
 
-message GetRequest {
+message KeyRequest {
     string db = 1;
     string key = 2;
 }
@@ -29,4 +32,13 @@ message GetResult {
 message Result {
     string code = 1;
     optional string error = 2;
+}
+
+message PrefixRequest {
+    string db = 1;
+    string prefix = 2;
+}
+
+message PrefixResult {
+    map<string, bytes> data = 1;
 }

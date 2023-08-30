@@ -23,7 +23,10 @@ const _ = grpc.SupportPackageIsVersion7
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type HoneyBadgerClient interface {
 	Set(ctx context.Context, in *SetRequest, opts ...grpc.CallOption) (*Result, error)
-	Get(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*GetResult, error)
+	Get(ctx context.Context, in *KeyRequest, opts ...grpc.CallOption) (*GetResult, error)
+	GetByPrefix(ctx context.Context, in *PrefixRequest, opts ...grpc.CallOption) (*PrefixResult, error)
+	Delete(ctx context.Context, in *KeyRequest, opts ...grpc.CallOption) (*Result, error)
+	DeleteByPrefix(ctx context.Context, in *PrefixRequest, opts ...grpc.CallOption) (*Result, error)
 }
 
 type honeyBadgerClient struct {
@@ -43,9 +46,36 @@ func (c *honeyBadgerClient) Set(ctx context.Context, in *SetRequest, opts ...grp
 	return out, nil
 }
 
-func (c *honeyBadgerClient) Get(ctx context.Context, in *GetRequest, opts ...grpc.CallOption) (*GetResult, error) {
+func (c *honeyBadgerClient) Get(ctx context.Context, in *KeyRequest, opts ...grpc.CallOption) (*GetResult, error) {
 	out := new(GetResult)
 	err := c.cc.Invoke(ctx, "/pb.HoneyBadger/Get", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *honeyBadgerClient) GetByPrefix(ctx context.Context, in *PrefixRequest, opts ...grpc.CallOption) (*PrefixResult, error) {
+	out := new(PrefixResult)
+	err := c.cc.Invoke(ctx, "/pb.HoneyBadger/GetByPrefix", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *honeyBadgerClient) Delete(ctx context.Context, in *KeyRequest, opts ...grpc.CallOption) (*Result, error) {
+	out := new(Result)
+	err := c.cc.Invoke(ctx, "/pb.HoneyBadger/Delete", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *honeyBadgerClient) DeleteByPrefix(ctx context.Context, in *PrefixRequest, opts ...grpc.CallOption) (*Result, error) {
+	out := new(Result)
+	err := c.cc.Invoke(ctx, "/pb.HoneyBadger/DeleteByPrefix", in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -57,7 +87,10 @@ func (c *honeyBadgerClient) Get(ctx context.Context, in *GetRequest, opts ...grp
 // for forward compatibility
 type HoneyBadgerServer interface {
 	Set(context.Context, *SetRequest) (*Result, error)
-	Get(context.Context, *GetRequest) (*GetResult, error)
+	Get(context.Context, *KeyRequest) (*GetResult, error)
+	GetByPrefix(context.Context, *PrefixRequest) (*PrefixResult, error)
+	Delete(context.Context, *KeyRequest) (*Result, error)
+	DeleteByPrefix(context.Context, *PrefixRequest) (*Result, error)
 	mustEmbedUnimplementedHoneyBadgerServer()
 }
 
@@ -68,8 +101,17 @@ type UnimplementedHoneyBadgerServer struct {
 func (UnimplementedHoneyBadgerServer) Set(context.Context, *SetRequest) (*Result, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Set not implemented")
 }
-func (UnimplementedHoneyBadgerServer) Get(context.Context, *GetRequest) (*GetResult, error) {
+func (UnimplementedHoneyBadgerServer) Get(context.Context, *KeyRequest) (*GetResult, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
+}
+func (UnimplementedHoneyBadgerServer) GetByPrefix(context.Context, *PrefixRequest) (*PrefixResult, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetByPrefix not implemented")
+}
+func (UnimplementedHoneyBadgerServer) Delete(context.Context, *KeyRequest) (*Result, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
+}
+func (UnimplementedHoneyBadgerServer) DeleteByPrefix(context.Context, *PrefixRequest) (*Result, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method DeleteByPrefix not implemented")
 }
 func (UnimplementedHoneyBadgerServer) mustEmbedUnimplementedHoneyBadgerServer() {}
 
@@ -103,7 +145,7 @@ func _HoneyBadger_Set_Handler(srv interface{}, ctx context.Context, dec func(int
 }
 
 func _HoneyBadger_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(GetRequest)
+	in := new(KeyRequest)
 	if err := dec(in); err != nil {
 		return nil, err
 	}
@@ -115,7 +157,61 @@ func _HoneyBadger_Get_Handler(srv interface{}, ctx context.Context, dec func(int
 		FullMethod: "/pb.HoneyBadger/Get",
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(HoneyBadgerServer).Get(ctx, req.(*GetRequest))
+		return srv.(HoneyBadgerServer).Get(ctx, req.(*KeyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _HoneyBadger_GetByPrefix_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PrefixRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(HoneyBadgerServer).GetByPrefix(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.HoneyBadger/GetByPrefix",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(HoneyBadgerServer).GetByPrefix(ctx, req.(*PrefixRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _HoneyBadger_Delete_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(KeyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(HoneyBadgerServer).Delete(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.HoneyBadger/Delete",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(HoneyBadgerServer).Delete(ctx, req.(*KeyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _HoneyBadger_DeleteByPrefix_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PrefixRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(HoneyBadgerServer).DeleteByPrefix(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.HoneyBadger/DeleteByPrefix",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(HoneyBadgerServer).DeleteByPrefix(ctx, req.(*PrefixRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -134,6 +230,18 @@ var HoneyBadger_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Get",
 			Handler:    _HoneyBadger_Get_Handler,
+		},
+		{
+			MethodName: "GetByPrefix",
+			Handler:    _HoneyBadger_GetByPrefix_Handler,
+		},
+		{
+			MethodName: "Delete",
+			Handler:    _HoneyBadger_Delete_Handler,
+		},
+		{
+			MethodName: "DeleteByPrefix",
+			Handler:    _HoneyBadger_DeleteByPrefix_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

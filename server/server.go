@@ -30,7 +30,7 @@ func (s *HoneyBadgerServer) Set(ctx context.Context, in *pb.SetRequest) (*pb.Res
 	return &pb.Result{Code: "ok"}, nil
 }
 
-func (s *HoneyBadgerServer) Get(ctx context.Context, in *pb.GetRequest) (*pb.GetResult, error) {
+func (s *HoneyBadgerServer) Get(ctx context.Context, in *pb.KeyRequest) (*pb.GetResult, error) {
 	db, err := db.Get(in.Db)
 	if err != nil {
 		return nil, err
@@ -42,4 +42,46 @@ func (s *HoneyBadgerServer) Get(ctx context.Context, in *pb.GetRequest) (*pb.Get
 	}
 
 	return &pb.GetResult{Data: data, Hit: hit}, nil
+}
+
+func (s *HoneyBadgerServer) GetByPrefix(ctx context.Context, in *pb.PrefixRequest) (*pb.PrefixResult, error) {
+	db, err := db.Get(in.Db)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := db.GetByPrefix(ctx, in.Prefix)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.PrefixResult{Data: data}, nil
+}
+
+func (s *HoneyBadgerServer) Delete(ctx context.Context, in *pb.KeyRequest) (*pb.Result, error) {
+	db, err := db.Get(in.Db)
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.DeleteByKey(in.Key)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.Result{Code: "ok"}, nil
+}
+
+func (s *HoneyBadgerServer) DeleteByPrefix(ctx context.Context, in *pb.PrefixRequest) (*pb.Result, error) {
+	db, err := db.Get(in.Db)
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.DeleteByPrefix(in.Prefix)
+	if err != nil {
+		return nil, err
+	}
+
+	return &pb.Result{Code: "ok"}, nil
 }
