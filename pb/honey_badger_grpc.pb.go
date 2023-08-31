@@ -27,6 +27,7 @@ type HoneyBadgerClient interface {
 	GetByPrefix(ctx context.Context, in *PrefixRequest, opts ...grpc.CallOption) (*PrefixResult, error)
 	Delete(ctx context.Context, in *KeyRequest, opts ...grpc.CallOption) (*Result, error)
 	DeleteByPrefix(ctx context.Context, in *PrefixRequest, opts ...grpc.CallOption) (*Result, error)
+	SetBatch(ctx context.Context, in *SetBatchRequest, opts ...grpc.CallOption) (*Result, error)
 }
 
 type honeyBadgerClient struct {
@@ -82,6 +83,15 @@ func (c *honeyBadgerClient) DeleteByPrefix(ctx context.Context, in *PrefixReques
 	return out, nil
 }
 
+func (c *honeyBadgerClient) SetBatch(ctx context.Context, in *SetBatchRequest, opts ...grpc.CallOption) (*Result, error) {
+	out := new(Result)
+	err := c.cc.Invoke(ctx, "/pb.HoneyBadger/SetBatch", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // HoneyBadgerServer is the server API for HoneyBadger service.
 // All implementations must embed UnimplementedHoneyBadgerServer
 // for forward compatibility
@@ -91,6 +101,7 @@ type HoneyBadgerServer interface {
 	GetByPrefix(context.Context, *PrefixRequest) (*PrefixResult, error)
 	Delete(context.Context, *KeyRequest) (*Result, error)
 	DeleteByPrefix(context.Context, *PrefixRequest) (*Result, error)
+	SetBatch(context.Context, *SetBatchRequest) (*Result, error)
 	mustEmbedUnimplementedHoneyBadgerServer()
 }
 
@@ -112,6 +123,9 @@ func (UnimplementedHoneyBadgerServer) Delete(context.Context, *KeyRequest) (*Res
 }
 func (UnimplementedHoneyBadgerServer) DeleteByPrefix(context.Context, *PrefixRequest) (*Result, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeleteByPrefix not implemented")
+}
+func (UnimplementedHoneyBadgerServer) SetBatch(context.Context, *SetBatchRequest) (*Result, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method SetBatch not implemented")
 }
 func (UnimplementedHoneyBadgerServer) mustEmbedUnimplementedHoneyBadgerServer() {}
 
@@ -216,6 +230,24 @@ func _HoneyBadger_DeleteByPrefix_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _HoneyBadger_SetBatch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(SetBatchRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(HoneyBadgerServer).SetBatch(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/pb.HoneyBadger/SetBatch",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(HoneyBadgerServer).SetBatch(ctx, req.(*SetBatchRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // HoneyBadger_ServiceDesc is the grpc.ServiceDesc for HoneyBadger service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -242,6 +274,10 @@ var HoneyBadger_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "DeleteByPrefix",
 			Handler:    _HoneyBadger_DeleteByPrefix_Handler,
+		},
+		{
+			MethodName: "SetBatch",
+			Handler:    _HoneyBadger_SetBatch_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

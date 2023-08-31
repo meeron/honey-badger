@@ -11,15 +11,26 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-var its = []int{
-	10_000,
-	30_000,
-	50_000,
-}
-var dbName = "bench"
+var (
+	getSetIts = []int{
+		10_000,
+		30_000,
+		50_000,
+	}
+	batchIts = []int{
+		50_000,
+		100_000,
+		300_000,
+	}
+)
+
+const (
+	DbName      = "bench"
+	PayloadSize = 256
+)
 
 func benchSet() {
-	conn, err := grpc.Dial("localhost:18950", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial("127.0.0.1:18950", grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
@@ -27,14 +38,14 @@ func benchSet() {
 
 	client := pb.NewHoneyBadgerClient(conn)
 
-	payload := make([]byte, 256)
+	payload := make([]byte, PayloadSize)
 
-	for i := 0; i < len(its); i++ {
+	for i := 0; i < len(getSetIts); i++ {
 		start := time.Now()
 
-		for j := 0; j < its[i]; j++ {
+		for j := 0; j < getSetIts[i]; j++ {
 			_, err := client.Set(context.TODO(), &pb.SetRequest{
-				Db:   dbName,
+				Db:   DbName,
 				Key:  fmt.Sprintf("bench-test-%d", j),
 				Data: payload,
 			})
@@ -43,7 +54,7 @@ func benchSet() {
 			}
 		}
 
-		fmt.Printf("Set_%d: %s\n", its[i], time.Since(start))
+		fmt.Printf("Set_%d: %s\n", getSetIts[i], time.Since(start))
 	}
 }
 
@@ -56,12 +67,12 @@ func benchGet() {
 
 	client := pb.NewHoneyBadgerClient(conn)
 
-	for i := 0; i < len(its); i++ {
+	for i := 0; i < len(getSetIts); i++ {
 		start := time.Now()
 
-		for j := 0; j < its[i]; j++ {
+		for j := 0; j < getSetIts[i]; j++ {
 			_, err := client.Get(context.TODO(), &pb.KeyRequest{
-				Db:  dbName,
+				Db:  DbName,
 				Key: fmt.Sprintf("bench-test-%d", j),
 			})
 			if err != nil {
@@ -69,11 +80,42 @@ func benchGet() {
 			}
 		}
 
-		fmt.Printf("Get_%d: %s\n", its[i], time.Since(start))
+		fmt.Printf("Get_%d: %s\n", getSetIts[i], time.Since(start))
+	}
+}
+
+func benchSetBatch() {
+	conn, err := grpc.Dial("localhost:18950", grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("did not connect: %v", err)
+	}
+	defer conn.Close()
+
+	client := pb.NewHoneyBadgerClient(conn)
+
+	for i := 0; i < len(batchIts); i++ {
+		data := make(map[string][]byte)
+
+		for j := 0; j < batchIts[i]; j++ {
+			data[fmt.Sprintf("batch-%d", j)] = make([]byte, PayloadSize)
+		}
+
+		start := time.Now()
+
+		_, err := client.SetBatch(context.TODO(), &pb.SetBatchRequest{
+			Db:   DbName,
+			Data: data,
+		})
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Printf("SetBatch_%d: %s\n", batchIts[i], time.Since(start))
 	}
 }
 
 func main() {
 	benchSet()
 	benchGet()
+	benchSetBatch()
 }

@@ -128,3 +128,16 @@ func (db *Database) GetByPrefix(ctx context.Context, prefix string) (map[string]
 
 	return res, stream.Orchestrate(ctx)
 }
+
+func (db *Database) SetBatch(data map[string][]byte) error {
+	w := db.b.NewWriteBatch()
+	defer w.Cancel()
+
+	for key, value := range data {
+		if err := w.Set([]byte(key), value); err != nil {
+			return err
+		}
+	}
+
+	return w.Flush()
+}

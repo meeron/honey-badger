@@ -22,7 +22,12 @@ func main() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	s := grpc.NewServer()
+	opts := []grpc.ServerOption{
+		grpc.MaxRecvMsgSize(1024 * 1024 * 100), // 100 MB
+	}
+
+	s := grpc.NewServer(opts...)
+
 	pb.RegisterHoneyBadgerServer(s, &server.HoneyBadgerServer{})
 	reflection.Register(s)
 

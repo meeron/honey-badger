@@ -10,6 +10,7 @@ service HoneyBadger {
     rpc GetByPrefix(PrefixRequest) returns (PrefixResult) {}
     rpc Delete(KeyRequest) returns (Result) {}
     rpc DeleteByPrefix(PrefixRequest) returns (Result) {}
+    rpc SetBatch(SetBatchRequest) returns (Result) {}
 }
 
 message SetRequest {
@@ -41,4 +42,9 @@ message PrefixRequest {
 
 message PrefixResult {
     map<string, bytes> data = 1;
+}
+
+message SetBatchRequest {
+    string db = 1;
+    map<string, bytes> data = 2;
 }

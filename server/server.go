@@ -64,8 +64,7 @@ func (s *HoneyBadgerServer) Delete(ctx context.Context, in *pb.KeyRequest) (*pb.
 		return nil, err
 	}
 
-	err = db.DeleteByKey(in.Key)
-	if err != nil {
+	if err := db.DeleteByKey(in.Key); err != nil {
 		return nil, err
 	}
 
@@ -78,8 +77,20 @@ func (s *HoneyBadgerServer) DeleteByPrefix(ctx context.Context, in *pb.PrefixReq
 		return nil, err
 	}
 
-	err = db.DeleteByPrefix(in.Prefix)
+	if err := db.DeleteByPrefix(in.Prefix); err != nil {
+		return nil, err
+	}
+
+	return &pb.Result{Code: "ok"}, nil
+}
+
+func (s *HoneyBadgerServer) SetBatch(ctx context.Context, in *pb.SetBatchRequest) (*pb.Result, error) {
+	db, err := db.Get(in.Db)
 	if err != nil {
+		return nil, err
+	}
+
+	if err := db.SetBatch(in.Data); err != nil {
 		return nil, err
 	}
 

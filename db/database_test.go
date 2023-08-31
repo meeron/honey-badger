@@ -135,3 +135,26 @@ func TestDeleteByPrefix(t *testing.T) {
 		assert.Empty(t, res)
 	})
 }
+
+func TestSetBatch(t *testing.T) {
+	db, err := Get("test-batch")
+	if err != nil {
+		panic(err)
+	}
+
+	t.Run("should set batch entries", func(t *testing.T) {
+		data := map[string][]byte{
+			"batch-1": make([]byte, 1),
+			"batch-2": make([]byte, 1),
+			"batch-3": make([]byte, 1),
+			"batch-4": make([]byte, 1),
+			"batch-5": make([]byte, 1),
+		}
+
+		err := db.SetBatch(data)
+		dbData, _ := db.GetByPrefix(context.TODO(), "batch-")
+
+		assert.Nil(t, err)
+		assert.Equal(t, len(data), len(dbData))
+	})
+}
