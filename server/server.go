@@ -120,6 +120,6 @@ func Run() error {
 	pb.RegisterHoneyBadgerServer(s, &HoneyBadgerServer{})
 	reflection.Register(s)
 
-	logger.Info("Server listening at %v", lis.Addr())
+	logger.Server().Infof("Server listening at %v", lis.Addr())
 	return s.Serve(lis)
 }

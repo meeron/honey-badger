@@ -22,7 +22,7 @@ type BadgerConfig struct {
 }
 
 type LoggerConfig struct {
-	Dir string
+	Sinks map[string]any
 }
 
 var current Config
@@ -70,7 +70,9 @@ func createDefaultConfig() Config {
 			MaxRecvMsgSizeMb: 100,
 		},
 		Logger: LoggerConfig{
-			Dir: "logs",
+			Sinks: map[string]any{
+				"console": true,
+			},
 		},
 	}
 }
@@ -92,7 +94,8 @@ func validateConfig(config *Config, defaultConfig *Config) {
 		config.Badger.GCPeriodMin = defaultConfig.Badger.GCPeriodMin
 	}
 
-	if config.Logger.Dir == "" {
-		config.Logger.Dir = defaultConfig.Logger.Dir
+	if len(config.Logger.Sinks) == 0 {
+
+		config.Logger.Sinks = defaultConfig.Logger.Sinks
 	}
 }
