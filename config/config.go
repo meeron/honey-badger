@@ -2,6 +2,7 @@ package config
 
 import (
 	"encoding/json"
+	"errors"
 	"os"
 )
 
@@ -26,13 +27,25 @@ type LoggerConfig struct {
 }
 
 var current Config
+var defaults = Config{
+	Badger: BadgerConfig{
+		DataDirPath: "data",
+		GCPeriodMin: 60,
+	},
+	Server: ServerConfig{
+		Port:             18950,
+		MaxRecvMsgSizeMb: 100,
+	},
+	Logger: LoggerConfig{
+		Sinks: map[string]any{
+			"console": true,
+		},
+	},
+}
 
 func Init(configFilePath string) error {
-	defaultConfig := createDefaultConfig()
-
 	if configFilePath == "" {
-		current = defaultConfig
-		return nil
+		return errors.New("invalid config file path")
 	}
 
 	f, err := os.OpenFile(configFilePath, os.O_RDONLY, os.ModeAppend)
@@ -48,7 +61,7 @@ func Init(configFilePath string) error {
 		return err
 	}
 
-	validateConfig(&fileConfing, &defaultConfig)
+	setDefaults(&fileConfing)
 
 	current = fileConfing
 
@@ -59,43 +72,24 @@ func Get() Config {
 	return current
 }
 
-func createDefaultConfig() Config {
-	return Config{
-		Badger: BadgerConfig{
-			DataDirPath: "data",
-			GCPeriodMin: 60,
-		},
-		Server: ServerConfig{
-			Port:             18950,
-			MaxRecvMsgSizeMb: 100,
-		},
-		Logger: LoggerConfig{
-			Sinks: map[string]any{
-				"console": true,
-			},
-		},
-	}
-}
-
-func validateConfig(config *Config, defaultConfig *Config) {
+func setDefaults(config *Config) {
 	if config.Server.Port <= 1023 {
-		config.Server.Port = defaultConfig.Server.Port
+		config.Server.Port = defaults.Server.Port
 	}
 
 	if config.Server.MaxRecvMsgSizeMb < 4 {
-		config.Server.MaxRecvMsgSizeMb = defaultConfig.Server.MaxRecvMsgSizeMb
+		config.Server.MaxRecvMsgSizeMb = defaults.Server.MaxRecvMsgSizeMb
 	}
 
 	if config.Badger.DataDirPath == "" {
-		config.Badger.DataDirPath = defaultConfig.Badger.DataDirPath
+		config.Badger.DataDirPath = defaults.Badger.DataDirPath
 	}
 
 	if config.Badger.GCPeriodMin <= 0 {
-		config.Badger.GCPeriodMin = defaultConfig.Badger.GCPeriodMin
+		config.Badger.GCPeriodMin = defaults.Badger.GCPeriodMin
 	}
 
 	if len(config.Logger.Sinks) == 0 {
-
-		config.Logger.Sinks = defaultConfig.Logger.Sinks
+		config.Logger.Sinks = defaults.Logger.Sinks
 	}
 }
