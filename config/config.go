@@ -33,7 +33,7 @@ func Init(configFilePath string) error {
 
 	f, err := os.OpenFile(configFilePath, os.O_RDONLY, os.ModeAppend)
 	if err != nil {
-		return nil
+		return err
 	}
 	defer f.Close()
 

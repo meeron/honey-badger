@@ -1,19 +1,23 @@
 package main
 
 import (
+	"flag"
 	"log"
-	"os"
 
 	"github.com/meeron/honey-badger/config"
 	"github.com/meeron/honey-badger/db"
 	"github.com/meeron/honey-badger/server"
 )
 
-func main() {
-	wd, _ := os.Getwd()
-	log.Printf("Working dir: %s", wd)
+var (
+	configPath string
+)
 
-	if err := config.Init("config.json"); err != nil {
+func main() {
+	flag.StringVar(&configPath, "config", "", "-config <path_to_config_file>")
+	flag.Parse()
+
+	if err := config.Init(configPath); err != nil {
 		log.Fatal(err)
 	}
 
