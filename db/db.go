@@ -14,11 +14,9 @@ import (
 	"github.com/meeron/honey-badger/config"
 )
 
-const DbGCPeriodMin = 60
-
 var (
 	dbs      = make(map[string]*Database)
-	gcTicker = time.NewTicker(24 * time.Hour) // Ticker will be reset for proper duration on init
+	gcTicker = time.NewTicker(24 * time.Hour) // Ticker will be reset for proper duration from config
 )
 
 type DbInfo struct {
@@ -66,7 +64,7 @@ func Init() error {
 		}
 	}
 
-	startGCRoutine()
+	startGCRoutine(config.GCPeriodMin)
 	notifySignal()
 
 	return nil
@@ -163,8 +161,10 @@ func Create(options NewDbOptions) (*Database, error) {
 	return dbs[options.Name], nil
 }
 
-func startGCRoutine() {
-	gcTicker.Reset(DbGCPeriodMin * time.Minute)
+func startGCRoutine(gcPeriod int) {
+	period := time.Duration(gcPeriod) * time.Minute
+	gcTicker.Reset(period)
+	log.Printf("GC tick set to: %v\n", period)
 
 	go func() {
 		for range gcTicker.C {

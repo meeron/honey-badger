@@ -112,7 +112,7 @@ func Run() error {
 	}
 
 	opts := []grpc.ServerOption{
-		grpc.MaxRecvMsgSize(1024 * 1024 * 100), // 100 MB
+		grpc.MaxRecvMsgSize(1024 * 1024 * config.MaxRecvMsgSizeMb),
 	}
 
 	s := grpc.NewServer(opts...)

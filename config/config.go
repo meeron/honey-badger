@@ -12,11 +12,13 @@ type Config struct {
 }
 
 type ServerConfig struct {
-	Port uint16
+	Port             uint16
+	MaxRecvMsgSizeMb int
 }
 
 type BadgerConfig struct {
 	DataDirPath string
+	GCPeriodMin int
 }
 
 var current Config
@@ -42,15 +44,7 @@ func Init(configFilePath string) error {
 		return err
 	}
 
-	if fileConfing.Server.Port <= 1023 {
-		log.Printf("Invalid config value: 'Server.Port'. Using default value '%d'", defaultConfig.Server.Port)
-		fileConfing.Server.Port = defaultConfig.Server.Port
-	}
-
-	if fileConfing.Badger.DataDirPath == "" {
-		log.Printf("Invalid config value: 'Badger.DataDirPath'. Using default value '%s'", defaultConfig.Badger.DataDirPath)
-		fileConfing.Badger.DataDirPath = current.Badger.DataDirPath
-	}
+	validateConfig(&fileConfing, &defaultConfig)
 
 	current = fileConfing
 
@@ -65,9 +59,33 @@ func createDefaultConfig() Config {
 	return Config{
 		Badger: BadgerConfig{
 			DataDirPath: "data",
+			GCPeriodMin: 60,
 		},
 		Server: ServerConfig{
-			Port: 18950,
+			Port:             18950,
+			MaxRecvMsgSizeMb: 100,
 		},
+	}
+}
+
+func validateConfig(config *Config, defaultConfig *Config) {
+	if config.Server.Port <= 1023 {
+		log.Printf("'Server.Port': using default value '%d'", defaultConfig.Server.Port)
+		config.Server.Port = defaultConfig.Server.Port
+	}
+
+	if config.Server.MaxRecvMsgSizeMb < 4 {
+		log.Printf("'Server.MaxRecvMsgSizeMb': using default value '%d'", defaultConfig.Server.MaxRecvMsgSizeMb)
+		config.Server.MaxRecvMsgSizeMb = defaultConfig.Server.MaxRecvMsgSizeMb
+	}
+
+	if config.Badger.DataDirPath == "" {
+		log.Printf("'Badger.DataDirPath': using default value '%s'", defaultConfig.Badger.DataDirPath)
+		config.Badger.DataDirPath = defaultConfig.Badger.DataDirPath
+	}
+
+	if config.Badger.GCPeriodMin <= 0 {
+		log.Printf("'Badger.GCPeriodMin': using default value '%d'", defaultConfig.Badger.GCPeriodMin)
+		config.Badger.GCPeriodMin = defaultConfig.Badger.GCPeriodMin
 	}
 }

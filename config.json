@@ -1,8 +1,10 @@
 {
     "Badger": {
-        "DataDirPath": "./data"
+        "DataDirPath": "./data",
+        "GCPeriodMin": 60
     },
     "Server": {
-        "Port": 18950
+        "Port": 18950,
+        "MaxRecvMsgSizeMb": 100
     }
 }
