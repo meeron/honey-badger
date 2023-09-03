@@ -2,9 +2,13 @@ package server
 
 import (
 	"context"
+	"log"
+	"net"
 
 	"github.com/meeron/honey-badger/db"
 	"github.com/meeron/honey-badger/pb"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 )
 
 type HoneyBadgerServer struct {
@@ -95,4 +99,23 @@ func (s *HoneyBadgerServer) SetBatch(ctx context.Context, in *pb.SetBatchRequest
 	}
 
 	return &pb.Result{Code: "ok"}, nil
+}
+
+func Run() error {
+	lis, err := net.Listen("tcp", ":18950")
+	if err != nil {
+		log.Fatalf("failed to listen: %v", err)
+	}
+
+	opts := []grpc.ServerOption{
+		grpc.MaxRecvMsgSize(1024 * 1024 * 100), // 100 MB
+	}
+
+	s := grpc.NewServer(opts...)
+
+	pb.RegisterHoneyBadgerServer(s, &HoneyBadgerServer{})
+	reflection.Register(s)
+
+	log.Printf("server listening at %v", lis.Addr())
+	return s.Serve(lis)
 }
