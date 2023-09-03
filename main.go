@@ -6,6 +6,7 @@ import (
 
 	"github.com/meeron/honey-badger/config"
 	"github.com/meeron/honey-badger/db"
+	"github.com/meeron/honey-badger/logger"
 	"github.com/meeron/honey-badger/server"
 )
 
@@ -18,6 +19,10 @@ func main() {
 	flag.Parse()
 
 	if err := config.Init(configPath); err != nil {
+		log.Fatal(err)
+	}
+
+	if err := logger.Init(); err != nil {
 		log.Fatal(err)
 	}
 

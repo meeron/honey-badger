@@ -3,7 +3,6 @@ package db
 import (
 	"errors"
 	"io/fs"
-	"log"
 	"os"
 	"os/signal"
 	"path"
@@ -12,6 +11,7 @@ import (
 
 	"github.com/dgraph-io/badger/v4"
 	"github.com/meeron/honey-badger/config"
+	"github.com/meeron/honey-badger/logger"
 )
 
 var (
@@ -43,7 +43,7 @@ func Init() error {
 	entries, err := os.ReadDir(config.DataDirPath)
 	_, ok := err.(*fs.PathError)
 	if ok {
-		err = os.Mkdir(config.DataDirPath, os.ModeDir)
+		err = os.Mkdir(config.DataDirPath, 0777)
 	}
 
 	if err != nil {
@@ -164,15 +164,15 @@ func Create(options NewDbOptions) (*Database, error) {
 func startGCRoutine(gcPeriod int) {
 	period := time.Duration(gcPeriod) * time.Minute
 	gcTicker.Reset(period)
-	log.Printf("GC tick set to: %v\n", period)
+	logger.Info("GC tick set to: %v\n", period)
 
 	go func() {
 		for range gcTicker.C {
 			for name, itm := range dbs {
-				log.Printf("Running GC on database '%s'...", name)
+				logger.Info("Running GC on database '%s'...", name)
 				err := itm.b.RunValueLogGC(0.7)
 				if err != nil {
-					log.Print(err)
+					logger.Error(err)
 				}
 			}
 		}
@@ -185,15 +185,15 @@ func notifySignal() {
 
 	go func() {
 		sig := <-signalChannel
-		log.Printf("%s", sig)
+		logger.Info("%s", sig)
 
 		gcTicker.Stop()
-		log.Print("GC ticker closed")
+		logger.Info("GC ticker closed")
 
 		for name, db := range dbs {
-			log.Printf("Closing database '%s'", name)
+			logger.Info("Closing database '%s'", name)
 			if err := db.b.Close(); err != nil {
-				log.Print(err)
+				logger.Error(err)
 			}
 		}
 

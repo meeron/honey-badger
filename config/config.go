@@ -2,13 +2,13 @@ package config
 
 import (
 	"encoding/json"
-	"log"
 	"os"
 )
 
 type Config struct {
 	Badger BadgerConfig
 	Server ServerConfig
+	Logger LoggerConfig
 }
 
 type ServerConfig struct {
@@ -19,6 +19,10 @@ type ServerConfig struct {
 type BadgerConfig struct {
 	DataDirPath string
 	GCPeriodMin int
+}
+
+type LoggerConfig struct {
+	Dir string
 }
 
 var current Config
@@ -65,27 +69,30 @@ func createDefaultConfig() Config {
 			Port:             18950,
 			MaxRecvMsgSizeMb: 100,
 		},
+		Logger: LoggerConfig{
+			Dir: "logs",
+		},
 	}
 }
 
 func validateConfig(config *Config, defaultConfig *Config) {
 	if config.Server.Port <= 1023 {
-		log.Printf("'Server.Port': using default value '%d'", defaultConfig.Server.Port)
 		config.Server.Port = defaultConfig.Server.Port
 	}
 
 	if config.Server.MaxRecvMsgSizeMb < 4 {
-		log.Printf("'Server.MaxRecvMsgSizeMb': using default value '%d'", defaultConfig.Server.MaxRecvMsgSizeMb)
 		config.Server.MaxRecvMsgSizeMb = defaultConfig.Server.MaxRecvMsgSizeMb
 	}
 
 	if config.Badger.DataDirPath == "" {
-		log.Printf("'Badger.DataDirPath': using default value '%s'", defaultConfig.Badger.DataDirPath)
 		config.Badger.DataDirPath = defaultConfig.Badger.DataDirPath
 	}
 
 	if config.Badger.GCPeriodMin <= 0 {
-		log.Printf("'Badger.GCPeriodMin': using default value '%d'", defaultConfig.Badger.GCPeriodMin)
 		config.Badger.GCPeriodMin = defaultConfig.Badger.GCPeriodMin
+	}
+
+	if config.Logger.Dir == "" {
+		config.Logger.Dir = defaultConfig.Logger.Dir
 	}
 }

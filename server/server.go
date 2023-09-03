@@ -3,11 +3,11 @@ package server
 import (
 	"context"
 	"fmt"
-	"log"
 	"net"
 
 	"github.com/meeron/honey-badger/config"
 	"github.com/meeron/honey-badger/db"
+	"github.com/meeron/honey-badger/logger"
 	"github.com/meeron/honey-badger/pb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -108,7 +108,7 @@ func Run() error {
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", config.Port))
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		return err
 	}
 
 	opts := []grpc.ServerOption{
@@ -120,6 +120,6 @@ func Run() error {
 	pb.RegisterHoneyBadgerServer(s, &HoneyBadgerServer{})
 	reflection.Register(s)
 
-	log.Printf("server listening at %v", lis.Addr())
+	logger.Info("Server listening at %v", lis.Addr())
 	return s.Serve(lis)
 }
