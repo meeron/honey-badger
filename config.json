@@ -1,0 +1,8 @@
+{
+    "Badger": {
+        "DataDirPath": "./data"
+    },
+    "Server": {
+        "Port": 18950
+    }
+}

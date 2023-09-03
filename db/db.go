@@ -2,6 +2,7 @@ package db
 
 import (
 	"errors"
+	"io/fs"
 	"log"
 	"os"
 	"os/signal"
@@ -10,9 +11,9 @@ import (
 	"time"
 
 	"github.com/dgraph-io/badger/v4"
+	"github.com/meeron/honey-badger/config"
 )
 
-const DbBasePath = "./data"
 const DbGCPeriodMin = 60
 
 var (
@@ -39,14 +40,21 @@ func (o NewDbOptions) Validate() error {
 }
 
 func Init() error {
-	entries, err := os.ReadDir(DbBasePath)
+	config := config.Get().Badger
+
+	entries, err := os.ReadDir(config.DataDirPath)
+	_, ok := err.(*fs.PathError)
+	if ok {
+		err = os.Mkdir(config.DataDirPath, os.ModeDir)
+	}
+
 	if err != nil {
 		return err
 	}
 
 	for _, entry := range entries {
 		name := entry.Name()
-		dbPath := path.Join(DbBasePath, name)
+		dbPath := path.Join(config.DataDirPath, name)
 
 		b, err := badger.Open(badger.DefaultOptions(dbPath))
 		if err != nil {
@@ -133,7 +141,9 @@ func Create(options NewDbOptions) (*Database, error) {
 	var opt badger.Options
 
 	if !options.InMemory {
-		dbPath := path.Join(DbBasePath, options.Name)
+		config := config.Get().Badger
+
+		dbPath := path.Join(config.DataDirPath, options.Name)
 
 		opt = badger.DefaultOptions(dbPath)
 	} else {

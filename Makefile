@@ -3,6 +3,7 @@ dev:
 
 build:
 	go build -o ./bin/hb .
+	cp config.json ./bin/config.json
 
 run: build
 	./bin/hb

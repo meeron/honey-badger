@@ -2,9 +2,11 @@ package server
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net"
 
+	"github.com/meeron/honey-badger/config"
 	"github.com/meeron/honey-badger/db"
 	"github.com/meeron/honey-badger/pb"
 	"google.golang.org/grpc"
@@ -102,7 +104,9 @@ func (s *HoneyBadgerServer) SetBatch(ctx context.Context, in *pb.SetBatchRequest
 }
 
 func Run() error {
-	lis, err := net.Listen("tcp", ":18950")
+	config := config.Get().Server
+
+	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", config.Port))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}

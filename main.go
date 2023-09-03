@@ -2,37 +2,26 @@ package main
 
 import (
 	"log"
-	"net"
+	"os"
 
+	"github.com/meeron/honey-badger/config"
 	"github.com/meeron/honey-badger/db"
-	"github.com/meeron/honey-badger/pb"
 	"github.com/meeron/honey-badger/server"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/reflection"
 )
 
 func main() {
-	err := db.Init()
-	if err != nil {
+	wd, _ := os.Getwd()
+	log.Printf("Working dir: %s", wd)
+
+	if err := config.Init("config.json"); err != nil {
 		log.Fatal(err)
 	}
 
-	lis, err := net.Listen("tcp", ":18950")
-	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+	if err := db.Init(); err != nil {
+		log.Fatal(err)
 	}
 
-	opts := []grpc.ServerOption{
-		grpc.MaxRecvMsgSize(1024 * 1024 * 100), // 100 MB
-	}
-
-	s := grpc.NewServer(opts...)
-
-	pb.RegisterHoneyBadgerServer(s, &server.HoneyBadgerServer{})
-	reflection.Register(s)
-
-	log.Printf("server listening at %v", lis.Addr())
-	if err := s.Serve(lis); err != nil {
-		log.Fatalf("failed to serve: %v", err)
+	if err := server.Run(); err != nil {
+		log.Fatal(err)
 	}
 }
