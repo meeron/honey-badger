@@ -54,7 +54,10 @@ func Init() error {
 		name := entry.Name()
 		dbPath := path.Join(config.DataDirPath, name)
 
-		b, err := badger.Open(badger.DefaultOptions(dbPath))
+		opt := badger.DefaultOptions(dbPath).
+			WithLogger(logger.Badger())
+
+		b, err := badger.Open(opt)
 		if err != nil {
 			return err
 		}
@@ -149,6 +152,8 @@ func Create(options NewDbOptions) (*Database, error) {
 			WithInMemory(options.InMemory)
 	}
 
+	opt = opt.WithLogger(logger.Badger())
+
 	bdb, err := badger.Open(opt)
 	if err != nil {
 		return nil, err
@@ -162,17 +167,19 @@ func Create(options NewDbOptions) (*Database, error) {
 }
 
 func startGCRoutine(gcPeriod int) {
+	log := logger.Get("GCRoutine")
+
 	period := time.Duration(gcPeriod) * time.Minute
 	gcTicker.Reset(period)
-	logger.Info("GC tick set to: %v\n", period)
+	log.Infof("Tick set to: %v\n", period)
 
 	go func() {
 		for range gcTicker.C {
 			for name, itm := range dbs {
-				logger.Info("Running GC on database '%s'...", name)
+				log.Infof("Running GC on database '%s'...", name)
 				err := itm.b.RunValueLogGC(0.7)
 				if err != nil {
-					logger.Error(err)
+					log.Error(err)
 				}
 			}
 		}
@@ -184,16 +191,18 @@ func notifySignal() {
 	signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
 
 	go func() {
+		log := logger.Get("db")
+
 		sig := <-signalChannel
-		logger.Info("%s", sig)
+		log.Infof("%s", sig)
 
 		gcTicker.Stop()
-		logger.Info("GC ticker closed")
+		log.Infof("GC ticker closed")
 
 		for name, db := range dbs {
-			logger.Info("Closing database '%s'", name)
+			log.Infof("Closing database '%s'", name)
 			if err := db.b.Close(); err != nil {
-				logger.Error(err)
+				log.Error(err)
 			}
 		}
 
