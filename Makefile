@@ -12,7 +12,7 @@ proto:
 	protoc --go_out=. --go_opt=paths=source_relative --go-grpc_out=. --go-grpc_opt=paths=source_relative pb/honey_badger.proto
 
 bench: build
-	./bin/hb -bench
+	./bin/hb -bench 127.0.0.1:18950
 
 test:
 	go test ./... -v
