@@ -2,7 +2,6 @@ package config
 
 import (
 	"encoding/json"
-	"errors"
 	"os"
 )
 
@@ -45,7 +44,8 @@ var defaults = Config{
 
 func Init(configFilePath string) error {
 	if configFilePath == "" {
-		return errors.New("invalid config file path")
+		current = defaults
+		return nil
 	}
 
 	f, err := os.OpenFile(configFilePath, os.O_RDONLY, os.ModeAppend)

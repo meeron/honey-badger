@@ -1,4 +1,4 @@
-package main
+package bench
 
 import (
 	"context"
@@ -29,8 +29,8 @@ const (
 	PayloadSize = 256
 )
 
-func benchSet() {
-	conn, err := grpc.Dial("127.0.0.1:18950", grpc.WithTransportCredentials(insecure.NewCredentials()))
+func benchSet(target string) {
+	conn, err := grpc.Dial(target, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
@@ -58,8 +58,8 @@ func benchSet() {
 	}
 }
 
-func benchGet() {
-	conn, err := grpc.Dial("localhost:18950", grpc.WithTransportCredentials(insecure.NewCredentials()))
+func benchGet(target string) {
+	conn, err := grpc.Dial(target, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
@@ -84,8 +84,8 @@ func benchGet() {
 	}
 }
 
-func benchSetBatch() {
-	conn, err := grpc.Dial("localhost:18950", grpc.WithTransportCredentials(insecure.NewCredentials()))
+func benchSetBatch(target string) {
+	conn, err := grpc.Dial(target, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
 	}
@@ -114,8 +114,8 @@ func benchSetBatch() {
 	}
 }
 
-func main() {
-	benchSet()
-	benchGet()
-	benchSetBatch()
+func Run(target string) {
+	benchSet(target)
+	benchGet(target)
+	benchSetBatch(target)
 }

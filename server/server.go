@@ -2,8 +2,11 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
+	"log"
 	"net"
+	"os"
 
 	"github.com/meeron/honey-badger/config"
 	"github.com/meeron/honey-badger/db"
@@ -11,6 +14,19 @@ import (
 	"github.com/meeron/honey-badger/pb"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
+)
+
+type serverStatus int
+
+const (
+	notRun  serverStatus = -1
+	started serverStatus = 1
+	stopped serverStatus = 0
+)
+
+var (
+	grpcServer *grpc.Server
+	status     chan serverStatus = make(chan serverStatus, 1)
 )
 
 type HoneyBadgerServer struct {
@@ -103,7 +119,7 @@ func (s *HoneyBadgerServer) SetBatch(ctx context.Context, in *pb.SetBatchRequest
 	return &pb.Result{Code: "ok"}, nil
 }
 
-func Run() error {
+func Start() error {
 	config := config.Get().Server
 
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", config.Port))
@@ -115,11 +131,39 @@ func Run() error {
 		grpc.MaxRecvMsgSize(1024 * 1024 * config.MaxRecvMsgSizeMb),
 	}
 
-	s := grpc.NewServer(opts...)
+	grpcServer = grpc.NewServer(opts...)
 
-	pb.RegisterHoneyBadgerServer(s, &HoneyBadgerServer{})
-	reflection.Register(s)
+	pb.RegisterHoneyBadgerServer(grpcServer, &HoneyBadgerServer{})
+	reflection.Register(grpcServer)
+
+	go func() {
+		if err := grpcServer.Serve(lis); err != nil {
+			log.Fatal(err)
+		}
+		status <- stopped
+		logger.Server().Infof("Server stopped")
+	}()
+	status <- started
 
 	logger.Server().Infof("Server listening at %v", lis.Addr())
-	return s.Serve(lis)
+	return nil
+}
+
+func Stop() {
+	if grpcServer == nil {
+		panic(errors.New("server not created"))
+	}
+
+	logger.Server().Infof("Stopping server...")
+	grpcServer.GracefulStop()
+}
+
+func Wait() {
+	for {
+		currentStatus := <-status
+
+		if currentStatus == stopped {
+			os.Exit(0)
+		}
+	}
 }
