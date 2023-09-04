@@ -89,22 +89,6 @@ func Get(name string) (*Database, error) {
 	return dbs[name], nil
 }
 
-func GetAll() map[string]DbInfo {
-	result := make(map[string]DbInfo)
-
-	for k, v := range dbs {
-		lsm, _ := v.b.Size()
-		options := v.b.Opts()
-
-		result[k] = DbInfo{
-			Lsm:      lsm,
-			InMemory: options.InMemory,
-		}
-	}
-
-	return result
-}
-
 func Drop(name string) error {
 	db := dbs[name]
 	if db == nil {
