@@ -4,9 +4,7 @@ import (
 	"errors"
 	"io/fs"
 	"os"
-	"os/signal"
 	"path"
-	"syscall"
 	"time"
 
 	"github.com/dgraph-io/badger/v4"
@@ -14,36 +12,28 @@ import (
 	"github.com/meeron/honey-badger/logger"
 )
 
-var (
-	dbs      = make(map[string]*Database)
-	gcTicker = time.NewTicker(24 * time.Hour) // Ticker will be reset for proper duration from config
-)
-
-type DbInfo struct {
-	Lsm      int64
-	InMemory bool
+type DbContext struct {
+	dbs      map[string]*Database
+	gcTicker *time.Ticker
+	config   config.BadgerConfig
+	logger   *logger.Logger
 }
 
-type NewDbOptions struct {
-	Name     string
-	InMemory bool
-}
-
-func (o NewDbOptions) Validate() error {
-	if o.Name == "" {
-		return errors.New("Name cannot be empty")
+func CreateCtx(c config.BadgerConfig) *DbContext {
+	ctx := &DbContext{
+		dbs:    make(map[string]*Database),
+		config: c,
+		logger: logger.Get("DbContext"),
 	}
 
-	return nil
+	return ctx
 }
 
-func Init() error {
-	config := config.Get().Badger
-
-	entries, err := os.ReadDir(config.DataDirPath)
+func (ctx *DbContext) LoadDbs() error {
+	entries, err := os.ReadDir(ctx.config.DataDirPath)
 	_, ok := err.(*fs.PathError)
 	if ok {
-		err = os.Mkdir(config.DataDirPath, 0777)
+		err = os.Mkdir(ctx.config.DataDirPath, 0777)
 	}
 
 	if err != nil {
@@ -52,7 +42,7 @@ func Init() error {
 
 	for _, entry := range entries {
 		name := entry.Name()
-		dbPath := path.Join(config.DataDirPath, name)
+		dbPath := path.Join(ctx.config.DataDirPath, name)
 
 		opt := badger.DefaultOptions(dbPath).
 			WithLogger(logger.Badger())
@@ -62,35 +52,33 @@ func Init() error {
 			return err
 		}
 
-		dbs[name] = &Database{
+		ctx.dbs[name] = &Database{
 			b: b,
 		}
 	}
 
-	startGCRoutine(config.GCPeriodMin)
-	notifySignal()
+	ctx.gcTicker = time.NewTicker(time.Duration(ctx.config.GCPeriodMin) * time.Minute)
+
+	startGCRoutine(ctx)
 
 	return nil
 }
 
-func Get(name string) (*Database, error) {
-	db := dbs[name]
+func (ctx *DbContext) GetDb(name string) (*Database, error) {
+	db := ctx.dbs[name]
 	if db == nil {
-		_, err := Create(NewDbOptions{
-			Name:     name,
-			InMemory: true,
-		})
+		_, err := ctx.CreateDb(name, true)
 
 		if err != nil {
 			return nil, err
 		}
 	}
 
-	return dbs[name], nil
+	return ctx.dbs[name], nil
 }
 
-func Drop(name string) error {
-	db := dbs[name]
+func (ctx *DbContext) DropDb(name string) error {
+	db := ctx.dbs[name]
 	if db == nil {
 		return nil
 	}
@@ -113,27 +101,31 @@ func Drop(name string) error {
 		return err
 	}
 
-	delete(dbs, name)
+	delete(ctx.dbs, name)
 
 	return nil
 }
 
-func Create(options NewDbOptions) (*Database, error) {
-	if dbs[options.Name] != nil {
+func (ctx *DbContext) CreateDb(name string, inMemory bool) (*Database, error) {
+	if name == "" {
+		return nil, errors.New("'name' cannot be empty")
+	}
+
+	if ctx.dbs[name] != nil {
 		return nil, errors.New("Db already exists")
 	}
 
 	var opt badger.Options
 
-	if !options.InMemory {
+	if !inMemory {
 		config := config.Get().Badger
 
-		dbPath := path.Join(config.DataDirPath, options.Name)
+		dbPath := path.Join(config.DataDirPath, name)
 
 		opt = badger.DefaultOptions(dbPath)
 	} else {
 		opt = badger.DefaultOptions("").
-			WithInMemory(options.InMemory)
+			WithInMemory(inMemory)
 	}
 
 	opt = opt.WithLogger(logger.Badger())
@@ -143,33 +135,44 @@ func Create(options NewDbOptions) (*Database, error) {
 		return nil, err
 	}
 
-	dbs[options.Name] = &Database{
+	ctx.dbs[name] = &Database{
 		b: bdb,
 	}
 
-	return dbs[options.Name], nil
+	return ctx.dbs[name], nil
 }
 
-func startGCRoutine(gcPeriod int) {
-	log := logger.Get("GCRoutine")
+func (ctx *DbContext) Close() {
+	ctx.gcTicker.Stop()
+	ctx.logger.Infof("GC ticker closed")
 
-	period := time.Duration(gcPeriod) * time.Minute
-	gcTicker.Reset(period)
-	log.Infof("Tick set to: %v\n", period)
+	for name, db := range ctx.dbs {
+		ctx.logger.Infof("Closing database '%s'", name)
+		if err := db.b.Close(); err != nil {
+			ctx.logger.Error(err)
+		}
+	}
+}
+
+func startGCRoutine(ctx *DbContext) {
+	period := time.Duration(ctx.config.GCPeriodMin) * time.Minute
+	ctx.gcTicker.Reset(period)
+	ctx.logger.Infof("GC tick set to: %v\n", period)
 
 	go func() {
-		for range gcTicker.C {
-			for name, itm := range dbs {
-				log.Infof("Running GC on database '%s'...", name)
+		for range ctx.gcTicker.C {
+			for name, itm := range ctx.dbs {
+				ctx.logger.Infof("Running GC on database '%s'...", name)
 				err := itm.b.RunValueLogGC(0.7)
 				if err != nil {
-					log.Error(err)
+					ctx.logger.Error(err)
 				}
 			}
 		}
 	}()
 }
 
+/*
 func notifySignal() {
 	signalChannel := make(chan os.Signal, 1)
 	signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
@@ -192,4 +195,4 @@ func notifySignal() {
 
 		os.Exit(0)
 	}()
-}
+}*/

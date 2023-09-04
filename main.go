@@ -34,11 +34,15 @@ func main() {
 		log.Fatal(err)
 	}
 
-	if err := db.Init(); err != nil {
+	dbCtx := db.CreateCtx(config.Get().Badger)
+	defer dbCtx.Close()
+
+	server := server.New(config.Get().Server, dbCtx)
+
+	if err := dbCtx.LoadDbs(); err != nil {
 		log.Fatal(err)
 	}
 
-	server := server.New(config.Get().Server)
 	if err := server.Start(); err != nil {
 		log.Fatal(err)
 	}

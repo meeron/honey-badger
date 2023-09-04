@@ -4,15 +4,12 @@ import (
 	"context"
 	"testing"
 
+	"github.com/meeron/honey-badger/config"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestGet(t *testing.T) {
-	db, err := Get("test")
-	if err != nil {
-		panic(err)
-
-	}
+	db := getDb()
 
 	t.Run("should return Hit=False if key is not found", func(t *testing.T) {
 		_, hit, err := db.Get("test-key1")
@@ -38,10 +35,7 @@ func TestGet(t *testing.T) {
 }
 
 func TestAdd(t *testing.T) {
-	db, err := Get("test")
-	if err != nil {
-		panic(err)
-	}
+	db := getDb()
 
 	t.Run("should set key", func(t *testing.T) {
 		const key = "set-test-key"
@@ -58,10 +52,7 @@ func TestAdd(t *testing.T) {
 }
 
 func TestDeleteByKey(t *testing.T) {
-	db, err := Get("test")
-	if err != nil {
-		panic(err)
-	}
+	db := getDb()
 
 	t.Run("should delete value by key", func(t *testing.T) {
 		const key = "test-key2"
@@ -79,10 +70,7 @@ func TestDeleteByKey(t *testing.T) {
 }
 
 func TestGetByPrefix(t *testing.T) {
-	db, err := Get("test")
-	if err != nil {
-		panic(err)
-	}
+	db := getDb()
 
 	t.Run("should return data by prefix as map", func(t *testing.T) {
 		var (
@@ -108,10 +96,7 @@ func TestGetByPrefix(t *testing.T) {
 }
 
 func TestDeleteByPrefix(t *testing.T) {
-	db, err := Get("test")
-	if err != nil {
-		panic(err)
-	}
+	db := getDb()
 
 	t.Run("should delete data by prefix", func(t *testing.T) {
 		var (
@@ -137,10 +122,7 @@ func TestDeleteByPrefix(t *testing.T) {
 }
 
 func TestSetBatch(t *testing.T) {
-	db, err := Get("test-batch")
-	if err != nil {
-		panic(err)
-	}
+	db := getDb()
 
 	t.Run("should set batch entries", func(t *testing.T) {
 		data := map[string][]byte{
@@ -157,4 +139,14 @@ func TestSetBatch(t *testing.T) {
 		assert.Nil(t, err)
 		assert.Equal(t, len(data), len(dbData))
 	})
+}
+
+func getDb() *Database {
+	db, err := CreateCtx(config.BadgerConfig{}).GetDb("test")
+	if err != nil {
+		panic(err)
+
+	}
+
+	return db
 }

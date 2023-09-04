@@ -9,10 +9,12 @@ import (
 
 type HoneyBadgerServer struct {
 	pb.UnimplementedHoneyBadgerServer
+
+	dbCtx *db.DbContext
 }
 
 func (s *HoneyBadgerServer) Set(ctx context.Context, in *pb.SetRequest) (*pb.Result, error) {
-	db, err := db.Get(in.Db)
+	db, err := s.dbCtx.GetDb(in.Db)
 	if err != nil {
 		return nil, err
 	}
@@ -31,7 +33,7 @@ func (s *HoneyBadgerServer) Set(ctx context.Context, in *pb.SetRequest) (*pb.Res
 }
 
 func (s *HoneyBadgerServer) Get(ctx context.Context, in *pb.KeyRequest) (*pb.GetResult, error) {
-	db, err := db.Get(in.Db)
+	db, err := s.dbCtx.GetDb(in.Db)
 	if err != nil {
 		return nil, err
 	}
@@ -45,7 +47,7 @@ func (s *HoneyBadgerServer) Get(ctx context.Context, in *pb.KeyRequest) (*pb.Get
 }
 
 func (s *HoneyBadgerServer) GetByPrefix(ctx context.Context, in *pb.PrefixRequest) (*pb.PrefixResult, error) {
-	db, err := db.Get(in.Db)
+	db, err := s.dbCtx.GetDb(in.Db)
 	if err != nil {
 		return nil, err
 	}
@@ -59,7 +61,7 @@ func (s *HoneyBadgerServer) GetByPrefix(ctx context.Context, in *pb.PrefixReques
 }
 
 func (s *HoneyBadgerServer) Delete(ctx context.Context, in *pb.KeyRequest) (*pb.Result, error) {
-	db, err := db.Get(in.Db)
+	db, err := s.dbCtx.GetDb(in.Db)
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +74,7 @@ func (s *HoneyBadgerServer) Delete(ctx context.Context, in *pb.KeyRequest) (*pb.
 }
 
 func (s *HoneyBadgerServer) DeleteByPrefix(ctx context.Context, in *pb.PrefixRequest) (*pb.Result, error) {
-	db, err := db.Get(in.Db)
+	db, err := s.dbCtx.GetDb(in.Db)
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +87,7 @@ func (s *HoneyBadgerServer) DeleteByPrefix(ctx context.Context, in *pb.PrefixReq
 }
 
 func (s *HoneyBadgerServer) SetBatch(ctx context.Context, in *pb.SetBatchRequest) (*pb.Result, error) {
-	db, err := db.Get(in.Db)
+	db, err := s.dbCtx.GetDb(in.Db)
 	if err != nil {
 		return nil, err
 	}
