@@ -21,3 +21,11 @@ func (s *DbServer) Create(ctx context.Context, in *pb.CreateDbRequest) (*pb.Resu
 
 	return &pb.Result{Code: "ok"}, nil
 }
+
+func (s *DbServer) Drop(ctx context.Context, in *pb.DropDbRequest) (*pb.Result, error) {
+	if err := s.dbCtx.DropDb(in.Name); err != nil {
+		return nil, err
+	}
+
+	return &pb.Result{Code: "ok"}, nil
+}

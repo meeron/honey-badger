@@ -15,6 +15,11 @@ service Data {
 
 service Db {
     rpc Create(CreateDbRequest) returns (Result) {}
+    rpc Drop(DropDbRequest) returns (Result) {}
+}
+
+service Sys {
+    rpc Ping(PingRequest) returns (Result) {}
 }
 
 message SetRequest {
@@ -57,3 +62,9 @@ message CreateDbRequest {
     string name = 1;
     bool inMemory = 2;
 }
+
+message DropDbRequest {
+    string name = 1;
+}
+
+message PingRequest {}

@@ -143,8 +143,10 @@ func (ctx *DbContext) CreateDb(name string, inMemory bool) (*Database, error) {
 }
 
 func (ctx *DbContext) Close() {
-	ctx.gcTicker.Stop()
-	ctx.logger.Infof("GC ticker closed")
+	if ctx.gcTicker != nil {
+		ctx.gcTicker.Stop()
+		ctx.logger.Infof("GC ticker closed")
+	}
 
 	for name, db := range ctx.dbs {
 		ctx.logger.Infof("Closing database '%s'", name)

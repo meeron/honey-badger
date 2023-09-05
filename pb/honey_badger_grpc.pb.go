@@ -295,6 +295,7 @@ var Data_ServiceDesc = grpc.ServiceDesc{
 
 const (
 	Db_Create_FullMethodName = "/hb.Db/Create"
+	Db_Drop_FullMethodName   = "/hb.Db/Drop"
 )
 
 // DbClient is the client API for Db service.
@@ -302,6 +303,7 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type DbClient interface {
 	Create(ctx context.Context, in *CreateDbRequest, opts ...grpc.CallOption) (*Result, error)
+	Drop(ctx context.Context, in *DropDbRequest, opts ...grpc.CallOption) (*Result, error)
 }
 
 type dbClient struct {
@@ -321,11 +323,21 @@ func (c *dbClient) Create(ctx context.Context, in *CreateDbRequest, opts ...grpc
 	return out, nil
 }
 
+func (c *dbClient) Drop(ctx context.Context, in *DropDbRequest, opts ...grpc.CallOption) (*Result, error) {
+	out := new(Result)
+	err := c.cc.Invoke(ctx, Db_Drop_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // DbServer is the server API for Db service.
 // All implementations must embed UnimplementedDbServer
 // for forward compatibility
 type DbServer interface {
 	Create(context.Context, *CreateDbRequest) (*Result, error)
+	Drop(context.Context, *DropDbRequest) (*Result, error)
 	mustEmbedUnimplementedDbServer()
 }
 
@@ -335,6 +347,9 @@ type UnimplementedDbServer struct {
 
 func (UnimplementedDbServer) Create(context.Context, *CreateDbRequest) (*Result, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Create not implemented")
+}
+func (UnimplementedDbServer) Drop(context.Context, *DropDbRequest) (*Result, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Drop not implemented")
 }
 func (UnimplementedDbServer) mustEmbedUnimplementedDbServer() {}
 
@@ -367,6 +382,24 @@ func _Db_Create_Handler(srv interface{}, ctx context.Context, dec func(interface
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Db_Drop_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(DropDbRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(DbServer).Drop(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Db_Drop_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(DbServer).Drop(ctx, req.(*DropDbRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // Db_ServiceDesc is the grpc.ServiceDesc for Db service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -377,6 +410,100 @@ var Db_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Create",
 			Handler:    _Db_Create_Handler,
+		},
+		{
+			MethodName: "Drop",
+			Handler:    _Db_Drop_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "pb/honey_badger.proto",
+}
+
+const (
+	Sys_Ping_FullMethodName = "/hb.Sys/Ping"
+)
+
+// SysClient is the client API for Sys service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type SysClient interface {
+	Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*Result, error)
+}
+
+type sysClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewSysClient(cc grpc.ClientConnInterface) SysClient {
+	return &sysClient{cc}
+}
+
+func (c *sysClient) Ping(ctx context.Context, in *PingRequest, opts ...grpc.CallOption) (*Result, error) {
+	out := new(Result)
+	err := c.cc.Invoke(ctx, Sys_Ping_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// SysServer is the server API for Sys service.
+// All implementations must embed UnimplementedSysServer
+// for forward compatibility
+type SysServer interface {
+	Ping(context.Context, *PingRequest) (*Result, error)
+	mustEmbedUnimplementedSysServer()
+}
+
+// UnimplementedSysServer must be embedded to have forward compatible implementations.
+type UnimplementedSysServer struct {
+}
+
+func (UnimplementedSysServer) Ping(context.Context, *PingRequest) (*Result, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Ping not implemented")
+}
+func (UnimplementedSysServer) mustEmbedUnimplementedSysServer() {}
+
+// UnsafeSysServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to SysServer will
+// result in compilation errors.
+type UnsafeSysServer interface {
+	mustEmbedUnimplementedSysServer()
+}
+
+func RegisterSysServer(s grpc.ServiceRegistrar, srv SysServer) {
+	s.RegisterService(&Sys_ServiceDesc, srv)
+}
+
+func _Sys_Ping_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(PingRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(SysServer).Ping(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: Sys_Ping_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(SysServer).Ping(ctx, req.(*PingRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// Sys_ServiceDesc is the grpc.ServiceDesc for Sys service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var Sys_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "hb.Sys",
+	HandlerType: (*SysServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Ping",
+			Handler:    _Sys_Ping_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

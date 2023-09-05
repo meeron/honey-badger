@@ -34,6 +34,7 @@ func New(c config.ServerConfig, dbCtx *db.DbContext) *Server {
 	pb.RegisterDbServer(grpcServer, &DbServer{
 		dbCtx: dbCtx,
 	})
+	pb.RegisterSysServer(grpcServer, &SysServer{})
 
 	reflection.Register(grpcServer)
 
