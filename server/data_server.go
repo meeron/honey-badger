@@ -7,13 +7,13 @@ import (
 	"github.com/meeron/honey-badger/pb"
 )
 
-type HoneyBadgerServer struct {
-	pb.UnimplementedHoneyBadgerServer
+type DataServer struct {
+	pb.UnimplementedDataServer
 
 	dbCtx *db.DbContext
 }
 
-func (s *HoneyBadgerServer) Set(ctx context.Context, in *pb.SetRequest) (*pb.Result, error) {
+func (s *DataServer) Set(ctx context.Context, in *pb.SetRequest) (*pb.Result, error) {
 	db, err := s.dbCtx.GetDb(in.Db)
 	if err != nil {
 		return nil, err
@@ -32,7 +32,7 @@ func (s *HoneyBadgerServer) Set(ctx context.Context, in *pb.SetRequest) (*pb.Res
 	return &pb.Result{Code: "ok"}, nil
 }
 
-func (s *HoneyBadgerServer) Get(ctx context.Context, in *pb.KeyRequest) (*pb.GetResult, error) {
+func (s *DataServer) Get(ctx context.Context, in *pb.KeyRequest) (*pb.GetResult, error) {
 	db, err := s.dbCtx.GetDb(in.Db)
 	if err != nil {
 		return nil, err
@@ -46,7 +46,7 @@ func (s *HoneyBadgerServer) Get(ctx context.Context, in *pb.KeyRequest) (*pb.Get
 	return &pb.GetResult{Data: data, Hit: hit}, nil
 }
 
-func (s *HoneyBadgerServer) GetByPrefix(ctx context.Context, in *pb.PrefixRequest) (*pb.PrefixResult, error) {
+func (s *DataServer) GetByPrefix(ctx context.Context, in *pb.PrefixRequest) (*pb.PrefixResult, error) {
 	db, err := s.dbCtx.GetDb(in.Db)
 	if err != nil {
 		return nil, err
@@ -60,7 +60,7 @@ func (s *HoneyBadgerServer) GetByPrefix(ctx context.Context, in *pb.PrefixReques
 	return &pb.PrefixResult{Data: data}, nil
 }
 
-func (s *HoneyBadgerServer) Delete(ctx context.Context, in *pb.KeyRequest) (*pb.Result, error) {
+func (s *DataServer) Delete(ctx context.Context, in *pb.KeyRequest) (*pb.Result, error) {
 	db, err := s.dbCtx.GetDb(in.Db)
 	if err != nil {
 		return nil, err
@@ -73,7 +73,7 @@ func (s *HoneyBadgerServer) Delete(ctx context.Context, in *pb.KeyRequest) (*pb.
 	return &pb.Result{Code: "ok"}, nil
 }
 
-func (s *HoneyBadgerServer) DeleteByPrefix(ctx context.Context, in *pb.PrefixRequest) (*pb.Result, error) {
+func (s *DataServer) DeleteByPrefix(ctx context.Context, in *pb.PrefixRequest) (*pb.Result, error) {
 	db, err := s.dbCtx.GetDb(in.Db)
 	if err != nil {
 		return nil, err
@@ -86,7 +86,7 @@ func (s *HoneyBadgerServer) DeleteByPrefix(ctx context.Context, in *pb.PrefixReq
 	return &pb.Result{Code: "ok"}, nil
 }
 
-func (s *HoneyBadgerServer) SetBatch(ctx context.Context, in *pb.SetBatchRequest) (*pb.Result, error) {
+func (s *DataServer) SetBatch(ctx context.Context, in *pb.SetBatchRequest) (*pb.Result, error) {
 	db, err := s.dbCtx.GetDb(in.Db)
 	if err != nil {
 		return nil, err

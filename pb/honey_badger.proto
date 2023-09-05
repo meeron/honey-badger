@@ -2,15 +2,19 @@ syntax = "proto3";
 
 option go_package = "github.com/meeron/honey-badger/pb";
 
-package pb;
+package hb;
 
-service HoneyBadger {
+service Data {
     rpc Set(SetRequest) returns (Result) {}
     rpc Get(KeyRequest) returns (GetResult) {}
     rpc GetByPrefix(PrefixRequest) returns (PrefixResult) {}
     rpc Delete(KeyRequest) returns (Result) {}
     rpc DeleteByPrefix(PrefixRequest) returns (Result) {}
     rpc SetBatch(SetBatchRequest) returns (Result) {}
+}
+
+service Db {
+    rpc Create(CreateDbRequest) returns (Result) {}
 }
 
 message SetRequest {
@@ -47,4 +51,9 @@ message PrefixResult {
 message SetBatchRequest {
     string db = 1;
     map<string, bytes> data = 2;
+}
+
+message CreateDbRequest {
+    string name = 1;
+    bool inMemory = 2;
 }

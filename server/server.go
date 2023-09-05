@@ -28,9 +28,13 @@ func New(c config.ServerConfig, dbCtx *db.DbContext) *Server {
 
 	grpcServer := grpc.NewServer(opts...)
 
-	pb.RegisterHoneyBadgerServer(grpcServer, &HoneyBadgerServer{
+	pb.RegisterDataServer(grpcServer, &DataServer{
 		dbCtx: dbCtx,
 	})
+	pb.RegisterDbServer(grpcServer, &DbServer{
+		dbCtx: dbCtx,
+	})
+
 	reflection.Register(grpcServer)
 
 	return &Server{

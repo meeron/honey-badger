@@ -36,7 +36,7 @@ func benchSet(target string) {
 	}
 	defer conn.Close()
 
-	client := pb.NewHoneyBadgerClient(conn)
+	client := pb.NewDataClient(conn)
 
 	payload := make([]byte, PayloadSize)
 
@@ -65,7 +65,7 @@ func benchGet(target string) {
 	}
 	defer conn.Close()
 
-	client := pb.NewHoneyBadgerClient(conn)
+	client := pb.NewDataClient(conn)
 
 	for i := 0; i < len(getSetIts); i++ {
 		start := time.Now()
@@ -91,7 +91,7 @@ func benchSetBatch(target string) {
 	}
 	defer conn.Close()
 
-	client := pb.NewHoneyBadgerClient(conn)
+	client := pb.NewDataClient(conn)
 
 	for i := 0; i < len(batchIts); i++ {
 		data := make(map[string][]byte)
