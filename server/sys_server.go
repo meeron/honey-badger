@@ -11,5 +11,5 @@ type SysServer struct {
 }
 
 func (s *SysServer) Ping(ctx context.Context, in *pb.PingRequest) (*pb.Result, error) {
-	return &pb.Result{Code: "ping"}, nil
+	return &pb.Result{Code: "pong"}, nil
 }
