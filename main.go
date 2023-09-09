@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"log"
 
 	"github.com/meeron/honey-badger/bench"
@@ -12,14 +13,23 @@ import (
 )
 
 var (
-	configPath  string
-	benchTarget string
+	configPath   string
+	benchTarget  string
+	printVersion bool
+	version      string
+	build        string
 )
 
 func main() {
 	flag.StringVar(&configPath, "config", "", "-config <path_to_config_file>")
 	flag.StringVar(&benchTarget, "bench", "", "-bench 127.0.0.1:18950")
+	flag.BoolVar(&printVersion, "version", false, "-version")
 	flag.Parse()
+
+	if printVersion {
+		fmt.Printf("version: %s build: %s\n", version, build)
+		return
+	}
 
 	if benchTarget != "" {
 		bench.Run(benchTarget)
