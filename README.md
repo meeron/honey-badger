@@ -1,6 +1,6 @@
 # Honey Badger
 
-Honey Badger is simple and fast cache server build on top [BadgerDB](https://github.com/dgraph-io/badger) and uses [gRPC](https://grpc.io/) as transport protocol.
+Honey Badger is simple and fast cache server with persistent storage build on top of [BadgerDB](https://github.com/dgraph-io/badger). It uses [gRPC](https://grpc.io/) as transport protocol.
 
 ## Getting Started
 ### Build server
@@ -89,3 +89,13 @@ SetBatch_300000: 608.204917ms
 The benchmark uses 256 bytes data as payload.
 
 The result `Set_10000: 507.815334ms` says that in 507ms 10k items where send to server.
+
+## Hardware requirements
+Honey Badger server should run on anything. CPU and RAM depends on your needs, but absolute minium is SSD disk (if persistance storage will be in use). Use benchmark command to check how Honey Badger is working on your instance.
+
+## System requirements
+### Linux and Mac
+Honey Badger should build run on any Linux distro. [BadgerDB recommends](https://dgraph.io/docs/badger/faq/#are-there-any-linux-specific-settings-that-i-should-use) `max file descriptors` set to a high number depending upon the expected size of your data.
+
+### Windows
+It should build and run just fine.
