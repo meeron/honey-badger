@@ -76,6 +76,8 @@ rpc Set(hb.SetRequest) returns (hb.Result) {}
 To test server performance on your system run
 ```sh
 $ ./bin/hb -bench localhost:18950
+os: darwin/arm64
+cpus: 8
 Set_10000: 507.815334ms
 Set_30000: 1.47245925s
 Set_50000: 2.424894917s

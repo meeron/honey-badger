@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"runtime"
 	"time"
 
 	"github.com/meeron/honey-badger/pb"
@@ -115,6 +116,8 @@ func benchSetBatch(target string) {
 }
 
 func Run(target string) {
+	fmt.Printf("os: %s/%s\n", runtime.GOOS, runtime.GOARCH)
+	fmt.Printf("cpus: %d\n", runtime.NumCPU())
 	benchSet(target)
 	benchGet(target)
 	benchSetBatch(target)
