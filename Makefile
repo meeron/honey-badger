@@ -2,7 +2,7 @@ dev:
 	go run .
 
 build:
-	go build -o ./bin/hb -ldflags "-X main.version=0.1.0 -X main.build=20230909" .
+	go build -o ./bin/hb .
 	cp config.json ./bin/config.json
 
 run: build

@@ -12,12 +12,12 @@ import (
 	"github.com/meeron/honey-badger/server"
 )
 
+const Version = "v0.1.0-alpha.1"
+
 var (
 	configPath   string
 	benchTarget  string
 	printVersion bool
-	version      string
-	build        string
 )
 
 func main() {
@@ -27,7 +27,7 @@ func main() {
 	flag.Parse()
 
 	if printVersion {
-		fmt.Printf("version: %s build: %s\n", version, build)
+		fmt.Printf("%s\n", Version)
 		return
 	}
 

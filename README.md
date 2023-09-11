@@ -1,5 +1,6 @@
 # Honey Badger
 
+[![Go Report Card](https://goreportcard.com/badge/github.com/meeron/honey-badger)](https://goreportcard.com/report/github.com/meeron/honey-badger)
 [![Go](https://github.com/meeron/honey-badger/actions/workflows/go-build.yml/badge.svg)](https://github.com/meeron/honey-badger/actions/workflows/go-build.yml)
 
 Honey Badger is simple and fast cache server with persistent storage build on top of [BadgerDB](https://github.com/dgraph-io/badger). It uses [gRPC](https://grpc.io/) as transport protocol.
