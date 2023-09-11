@@ -5,6 +5,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"runtime"
 	"syscall"
 
 	"github.com/meeron/honey-badger/config"
@@ -50,6 +51,9 @@ func (s *Server) Start() error {
 	if err != nil {
 		return err
 	}
+
+	//https://dgraph.io/docs/badger/faq/#are-there-any-go-specific-settings-that-i-should-use
+	runtime.GOMAXPROCS(128)
 
 	go notifySignal(s)
 

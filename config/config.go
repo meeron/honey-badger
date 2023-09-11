@@ -33,7 +33,7 @@ var defaults = Config{
 	},
 	Server: ServerConfig{
 		Port:             18950,
-		MaxRecvMsgSizeMb: 100,
+		MaxRecvMsgSizeMb: 200,
 	},
 	Logger: LoggerConfig{
 		Sinks: map[string]any{
