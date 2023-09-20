@@ -12,12 +12,11 @@ import (
 	"github.com/meeron/honey-badger/server"
 )
 
-const Version = "v0.1.0-alpha.1"
-
 var (
 	configPath   string
 	benchTarget  string
 	printVersion bool
+	version      string
 )
 
 func main() {
@@ -27,7 +26,7 @@ func main() {
 	flag.Parse()
 
 	if printVersion {
-		fmt.Printf("%s\n", Version)
+		fmt.Printf("%s\n", getVersion())
 		return
 	}
 
@@ -56,4 +55,12 @@ func main() {
 	if err := server.Start(); err != nil {
 		log.Fatal(err)
 	}
+}
+
+func getVersion() string {
+	if version == "" {
+		return "0.0.0"
+	}
+
+	return version
 }
