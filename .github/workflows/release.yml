@@ -2,6 +2,7 @@
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-go
 
 name: Release
+run-name: 'v${{ github.event.inputs.version }}'
 
 on:
   workflow_dispatch:
@@ -29,7 +30,7 @@ jobs:
     - name: Test
       run: make test
     - name: Tar Archive
-      run: tar -zcvf hb-linux-amd64.tar.gz bin
+      run: tar -zcvf hb-linux-amd64-${{ github.event.inputs.version }}.tar.gz bin
 
     - name: Create Release
       uses: ncipollo/release-action@v1.13.0
@@ -37,10 +38,11 @@ jobs:
         tag: 'v${{ github.event.inputs.version }}'
         draft: true
         prerelease: true
-        artifacts: "hb-linux-amd64.tar.gz"
+        artifacts: "hb-linux-amd64-${{ github.event.inputs.version }}.tar.gz"
 
   docker:
     runs-on: ubunut-latest
+    needs: build-amd64
     steps:
     - uses: actions/checkout@v3
       with:
