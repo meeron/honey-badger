@@ -2,7 +2,7 @@ dev:
 	go run .
 
 build:
-	go build -o ./bin/hb .
+	go build -o ./bin/hb -ldflags "-X main.version=$(ver)" .
 	cp config.json ./bin/config.json
 
 run: build
@@ -18,5 +18,5 @@ test:
 	go test ./... -v
 
 docker:
-	docker build -t meeron/honey-badger:0.1.0-alpha.1 .
+	docker build --build-arg ver=$(ver) -t meeron/honey-badger:$(ver) -t meeron/honey-badger:latest .
 
