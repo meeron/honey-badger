@@ -17,3 +17,6 @@ bench: build
 test:
 	go test ./... -v
 
+docker:
+	docker build -t meeron/honey-badger:0.1.0-alpha.1 .
+
