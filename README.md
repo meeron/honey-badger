@@ -39,6 +39,13 @@ or on Windows
 bin\hb.exe
 ```
 
+### Docker
+
+Run Docker image using
+```sh
+docker run --name honey-badger -p 18950:18950 -d meeron/honey-badger:latest
+```
+
 ### Client
 To connect to server you need gRPC client. Using [honey_badger.proto](https://github.com/meeron/honey-badger/blob/master/pb/honey_badger.proto) file you can generate one with your favorite [language](https://grpc.io/docs/languages/).
 
