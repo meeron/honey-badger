@@ -41,7 +41,7 @@ jobs:
         artifacts: "hb-linux-amd64-${{ github.event.inputs.version }}.tar.gz"
 
   docker:
-    runs-on: ubunut-latest
+    runs-on: ubuntu-latest
     needs: build-amd64
     steps:
     - uses: actions/checkout@v3
