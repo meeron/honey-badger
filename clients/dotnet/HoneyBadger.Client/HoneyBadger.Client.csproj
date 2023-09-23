@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.1</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+        <LangVersion>latest</LangVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Protobuf Include="../../../honey_badger.proto" GrpcServices="HbClient" Link="../../../honey_badger.proto" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Grpc.Net.Client" Version="2.57.0" />
+        <PackageReference Include="Google.Protobuf" Version="3.24.3" />
+        <PackageReference Include="Grpc.Tools" Version="2.58.0" PrivateAssets="All" />
+    </ItemGroup>
+</Project>

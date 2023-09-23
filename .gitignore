@@ -8,6 +8,7 @@
 *.so
 *.dylib
 bin
+obj
 
 # Test binary, built with `go test -c`
 *.test
@@ -23,3 +24,4 @@ go.work
 data
 .DS_Store
 logs
+.idea
