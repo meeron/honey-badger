@@ -9,7 +9,7 @@ run: build
 	./bin/hb
 
 proto:
-	protoc --go_out=./src --go_opt=paths=source_relative --go-grpc_out=./src --go-grpc_opt=paths=source_relative pb/honey_badger.proto
+	protoc --go_out=./src/pb --go_opt=paths=source_relative --go-grpc_out=./src/pb --go-grpc_opt=paths=source_relative honey_badger.proto
 
 bench: build
 	./bin/hb -bench 127.0.0.1:18950
