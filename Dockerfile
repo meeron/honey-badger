@@ -1,11 +1,11 @@
 FROM golang:1.21-alpine3.18 AS source
 ARG ver
 WORKDIR /source
-COPY . .
+COPY ./src .
 RUN apk add make
 RUN go version
 RUN go install
-RUN make build ver=${ver}
+RUN go build -o ./bin/hb -ldflags "-X main.version=${ver}" .
 
 FROM alpine:3.18.3 as app
 WORKDIR /app
