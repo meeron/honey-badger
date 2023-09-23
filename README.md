@@ -17,14 +17,7 @@ To start, clone the repo
 git clone git@github.com:meeron/honey-badger.git
 ```
 
-Go to `honey-badger` directory and install packages
-
-```sh
-$ cd honey-badger
-$ go install
-```
-
-Then run the following command
+Go to `honey-badger` directory and build server binaries
 ```sh
 $ make build
 ```
@@ -116,7 +109,7 @@ Honey Badger server should run on anything. CPU and RAM depends on your needs, b
 
 ## System requirements
 ### Linux and Mac
-Honey Badger should build run on any Linux distro. [BadgerDB recommends](https://dgraph.io/docs/badger/faq/#are-there-any-linux-specific-settings-that-i-should-use) `max file descriptors` set to a high number depending upon the expected size of your data.
+Honey Badger should build and run on any Linux distro. [BadgerDB recommends](https://dgraph.io/docs/badger/faq/#are-there-any-linux-specific-settings-that-i-should-use) `max file descriptors` set to a high number depending upon the expected size of your data.
 
 ### Windows
 It should build and run just fine.
