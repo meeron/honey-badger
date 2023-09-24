@@ -10,6 +10,6 @@ type SysServer struct {
 	pb.UnimplementedSysServer
 }
 
-func (s *SysServer) Ping(ctx context.Context, in *pb.PingRequest) (*pb.Result, error) {
-	return &pb.Result{Code: "pong"}, nil
+func (s *SysServer) Ping(ctx context.Context, in *pb.PingRequest) (*pb.PingResult, error) {
+	return &pb.PingResult{Mesage: "pong"}, nil
 }

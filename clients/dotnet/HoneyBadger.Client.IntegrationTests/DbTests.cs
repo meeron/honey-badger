@@ -16,22 +16,16 @@ public class DbTests
     public async Task CreateInMemoryDb()
     {
         // Act
-        var res = await _db.Create("in-memory-db", true);
+        await _db.Create("in-memory-db", true);
         await _db.Drop("in-memory-db");
-        
-        // Assert
-        res.ShouldBe(StatusCode.Ok);
     }
     
     [Fact]
     public async Task CreateOnDiskDb()
     {
         // Act
-        var res = await _db.Create("on-disk-db", false);
+        await _db.Create("on-disk-db", false);
         await _db.Drop("on-disk-db");
-        
-        // Assert
-        res.ShouldBe(StatusCode.Ok);
     }
     
     [Fact]

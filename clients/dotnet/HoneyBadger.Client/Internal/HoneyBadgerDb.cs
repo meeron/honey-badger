@@ -12,25 +12,22 @@ internal class HoneyBadgerDb : IHoneyBadgerDb
         _dbClient = new Db.DbClient(channel);
     }
 
-    public async Task<StatusCode> Create(string name, bool inMemory)
+    public async Task Create(string name, bool inMemory)
     {
         Guard.NotNullOrEmpty(nameof(name), name);
 
-        var res = await _dbClient.CreateAsync(new CreateDbRequest
+        await _dbClient.CreateAsync(new CreateDbRequest
         {
             Name = name,
             InMemory = inMemory,
         });
-
-        return res.Code.ToStatusCode();
     }
 
-    public async Task<StatusCode> Drop(string name)
+    public async Task Drop(string name)
     {
-        var res = await _dbClient.DropAsync(new DropDbRequest
+        await _dbClient.DropAsync(new DropDbRequest
         {
             Name = name,
         });
-        return res.Code.ToStatusCode();
     }
 }

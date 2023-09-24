@@ -22,10 +22,10 @@ public class HoneyBadgerClient : IHoneyBadgerClient
     
     public IHoneyBadgerDb Db { get; }
 
-    public async Task<StatusCode> PingAsync()
+    public async Task<string> PingAsync()
     {
         var res = await _sysClient.PingAsync(new PingRequest());
-        return res.Code.ToStatusCode();
+        return res.Mesage;
     }
 
     public void Dispose()

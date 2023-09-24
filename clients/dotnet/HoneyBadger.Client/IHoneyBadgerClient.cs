@@ -6,5 +6,5 @@ public interface IHoneyBadgerClient : IDisposable
     
     IHoneyBadgerDb Db { get; }
     
-    Task<StatusCode> PingAsync();
+    Task<string> PingAsync();
 }

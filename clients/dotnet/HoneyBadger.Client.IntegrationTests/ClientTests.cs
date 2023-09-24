@@ -17,6 +17,6 @@ public class ClientTests
         // Act
         var result = await _client.PingAsync();
         
-        result.ShouldBe(StatusCode.Pong);
+        result.ShouldBe("pong");
     }
 }

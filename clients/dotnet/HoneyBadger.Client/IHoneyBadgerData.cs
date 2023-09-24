@@ -12,19 +12,19 @@ public interface IHoneyBadgerData
     
     Task<IReadOnlyDictionary<string, string>> GetStringsByPrefixAsync(string db, string prefix);
 
-    Task<StatusCode> SetAsync(string db, string key, byte[] data, TimeSpan? ttl = null);
+    Task SetAsync(string db, string key, byte[] data, TimeSpan? ttl = null);
     
-    StatusCode Set(string db, string key, byte[] data, TimeSpan? ttl = null);
+    void Set(string db, string key, byte[] data, TimeSpan? ttl = null);
     
-    Task<StatusCode> SetAsync(string db, string key, string data, TimeSpan? ttl = null);
+    Task SetAsync(string db, string key, string data, TimeSpan? ttl = null);
 
-    Task<StatusCode> SetBatchAsync(string db, IReadOnlyDictionary<string, byte[]> data);
+    Task SetBatchAsync(string db, IReadOnlyDictionary<string, byte[]> data);
     
-    Task<StatusCode> SetBatchAsync(string db, IReadOnlyDictionary<string, string> data);
+    Task SetBatchAsync(string db, IReadOnlyDictionary<string, string> data);
 
-    Task<StatusCode> DeleteAsync(string db, string key);
+    Task DeleteAsync(string db, string key);
     
-    StatusCode Delete(string db, string key);
+    void Delete(string db, string key);
 
-    Task<StatusCode> DeleteByPrefixAsync(string db, string prefix);
+    Task DeleteByPrefixAsync(string db, string prefix);
 }

@@ -59,7 +59,7 @@ internal class HoneyBadgerData : IHoneyBadgerData
         return GetByPrefix(db, prefix, data => data.ToStringUtf8());
     }
 
-    public Task<StatusCode> SetAsync(string db, string key, byte[] data, TimeSpan? ttl = null)
+    public Task SetAsync(string db, string key, byte[] data, TimeSpan? ttl = null)
     {
         Guard.NotNullOrEmpty(nameof(db), db);
         Guard.NotNullOrEmpty(nameof(key), key);
@@ -68,24 +68,22 @@ internal class HoneyBadgerData : IHoneyBadgerData
         return SetAsync(db, key, ByteString.CopyFrom(data), ttl);
     }
 
-    public StatusCode Set(string db, string key, byte[] data, TimeSpan? ttl = null)
+    public void Set(string db, string key, byte[] data, TimeSpan? ttl = null)
     {
         Guard.NotNullOrEmpty(nameof(db), db);
         Guard.NotNullOrEmpty(nameof(key), key);
         Guard.NotNull(nameof(data), data);
 
-        var res = _dataClient.Set(new SetRequest
+        _dataClient.Set(new SetRequest
         {
             Db = db,
             Key = key,
             Data = ByteString.CopyFrom(data),
             Ttl = (int)Math.Round(ttl?.TotalSeconds ?? 0),
         });
-
-        return res.Code.ToStatusCode();
     }
 
-    public Task<StatusCode> SetAsync(string db, string key, string data, TimeSpan? ttl = null)
+    public Task SetAsync(string db, string key, string data, TimeSpan? ttl = null)
     {
         Guard.NotNullOrEmpty(nameof(db), db);
         Guard.NotNullOrEmpty(nameof(key), key);
@@ -94,7 +92,7 @@ internal class HoneyBadgerData : IHoneyBadgerData
         return SetAsync(db, key, ByteString.CopyFromUtf8(data), ttl);
     }
 
-    public Task<StatusCode> SetBatchAsync(string db, IReadOnlyDictionary<string, byte[]> data)
+    public Task SetBatchAsync(string db, IReadOnlyDictionary<string, byte[]> data)
     {
         Guard.NotNullOrEmpty(nameof(db), db);
         Guard.NotNull(nameof(data), data);
@@ -102,7 +100,7 @@ internal class HoneyBadgerData : IHoneyBadgerData
         return SetBatchAsync(db, data, ByteString.CopyFrom);
     }
 
-    public Task<StatusCode> SetBatchAsync(string db, IReadOnlyDictionary<string, string> data)
+    public Task SetBatchAsync(string db, IReadOnlyDictionary<string, string> data)
     {
         Guard.NotNullOrEmpty(nameof(db), db);
         Guard.NotNull(nameof(data), data);
@@ -110,55 +108,51 @@ internal class HoneyBadgerData : IHoneyBadgerData
         return SetBatchAsync(db, data, ByteString.CopyFromUtf8);
     }
 
-    public async Task<StatusCode> DeleteAsync(string db, string key)
+    public async Task DeleteAsync(string db, string key)
     {
         Guard.NotNullOrEmpty(nameof(db), db);
         Guard.NotNullOrEmpty(nameof(key), key);
         
-        var res = await _dataClient.DeleteAsync(new KeyRequest
+        await _dataClient.DeleteAsync(new KeyRequest
         {
             Db = db,
             Key = key,
         });
-        return res.Code.ToStatusCode();
     }
 
-    public StatusCode Delete(string db, string key)
+    public void Delete(string db, string key)
     {
         Guard.NotNullOrEmpty(nameof(db), db);
         Guard.NotNullOrEmpty(nameof(key), key);
 
-        return _dataClient.Delete(new KeyRequest
+        _dataClient.Delete(new KeyRequest
         {
             Db = db,
             Key = key,
-        }).Code.ToStatusCode();
+        });
     }
 
-    public async Task<StatusCode> DeleteByPrefixAsync(string db, string prefix)
+    public async Task DeleteByPrefixAsync(string db, string prefix)
     {
         Guard.NotNullOrEmpty(nameof(db), db);
         Guard.NotNullOrEmpty(nameof(prefix), prefix);
         
-        var res = await _dataClient.DeleteByPrefixAsync(new PrefixRequest
+        await _dataClient.DeleteByPrefixAsync(new PrefixRequest
         {
             Db = db,
             Prefix = prefix
         });
-        return res.Code.ToStatusCode();
     }
 
-    private async Task<StatusCode> SetAsync(string db, string key, ByteString data, TimeSpan? ttl = null)
+    private async Task SetAsync(string db, string key, ByteString data, TimeSpan? ttl = null)
     {
-        var res = await _dataClient.SetAsync(new SetRequest
+        await _dataClient.SetAsync(new SetRequest
         {
             Db = db,
             Key = key,
             Data = data,
             Ttl = (int)Math.Round(ttl?.TotalSeconds ?? 0),
         });
-
-        return res.Code.ToStatusCode();
     }
     
     private async Task<T?> GetAsync<T>(string db, string key, Func<ByteString, T> converter)
@@ -186,7 +180,7 @@ internal class HoneyBadgerData : IHoneyBadgerData
         return res.Data.ToDictionary(k => k.Key, v => converter(v.Value));
     }
     
-    private async Task<StatusCode> SetBatchAsync<T>(
+    private async Task SetBatchAsync<T>(
         string db,
         IReadOnlyDictionary<string, T> data,
         Func<T, ByteString> converter)
@@ -197,7 +191,6 @@ internal class HoneyBadgerData : IHoneyBadgerData
         };
         req.Data.MergeFrom(data.ToDictionary(k => k.Key, v => converter(v.Value)));
         
-        var res = await _dataClient.SetBatchAsync(req);
-        return res.Code.ToStatusCode();
+        await _dataClient.SetBatchAsync(req);
     }
 }

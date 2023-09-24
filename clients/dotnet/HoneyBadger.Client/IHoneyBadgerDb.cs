@@ -2,7 +2,7 @@ namespace HoneyBadger.Client;
 
 public interface IHoneyBadgerDb
 {
-    Task<StatusCode> Create(string name, bool inMemory);
+    Task Create(string name, bool inMemory);
 
-    Task<StatusCode> Drop(string name);
+    Task Drop(string name);
 }

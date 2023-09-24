@@ -22,28 +22,20 @@ func TestDbServer(t *testing.T) {
 	client := pb.NewDbClient(conn)
 
 	t.Run("should call create database", func(t *testing.T) {
-		res, err := client.Create(context.TODO(), &pb.CreateDbRequest{
+		_, err := client.Create(context.TODO(), &pb.CreateDbRequest{
 			Name:     "test-db",
 			InMemory: true,
 		})
 
 		assert.Nil(t, err, fmt.Sprintf("%v", err))
-
-		if res != nil {
-			assert.Equal(t, "ok", res.Code)
-		}
 	})
 
 	t.Run("should call drop database", func(t *testing.T) {
-		res, err := client.Drop(context.TODO(), &pb.DropDbRequest{
+		_, err := client.Drop(context.TODO(), &pb.DropDbRequest{
 			Name: "test-db",
 		})
 
 		assert.Nil(t, err, fmt.Sprintf("%v", err))
-
-		if res != nil {
-			assert.Equal(t, "ok", res.Code)
-		}
 	})
 }
 
@@ -55,17 +47,13 @@ func TestDataServer(t *testing.T) {
 	client := pb.NewDataClient(conn)
 
 	t.Run("should call set", func(t *testing.T) {
-		res, err := client.Set(context.TODO(), &pb.SetRequest{
+		_, err := client.Set(context.TODO(), &pb.SetRequest{
 			Db:   "test-db",
 			Key:  "test-key",
 			Data: []byte("test"),
 		})
 
 		assert.Nil(t, err, fmt.Sprintf("%v", err))
-
-		if res != nil {
-			assert.Equal(t, "ok", res.Code)
-		}
 	})
 
 	t.Run("should call get", func(t *testing.T) {
@@ -87,42 +75,30 @@ func TestDataServer(t *testing.T) {
 	})
 
 	t.Run("should call delete", func(t *testing.T) {
-		res, err := client.Delete(context.TODO(), &pb.KeyRequest{
+		_, err := client.Delete(context.TODO(), &pb.KeyRequest{
 			Db:  "test-db",
 			Key: "test-test",
 		})
 
 		assert.Nil(t, err, fmt.Sprintf("%v", err))
-
-		if res != nil {
-			assert.Equal(t, "ok", res.Code)
-		}
 	})
 
 	t.Run("should call delete by prefix", func(t *testing.T) {
-		res, err := client.DeleteByPrefix(context.TODO(), &pb.PrefixRequest{
+		_, err := client.DeleteByPrefix(context.TODO(), &pb.PrefixRequest{
 			Db:     "test-db",
 			Prefix: "test-",
 		})
 
 		assert.Nil(t, err, fmt.Sprintf("%v", err))
-
-		if res != nil {
-			assert.Equal(t, "ok", res.Code)
-		}
 	})
 
 	t.Run("should call set batch", func(t *testing.T) {
-		res, err := client.SetBatch(context.TODO(), &pb.SetBatchRequest{
+		_, err := client.SetBatch(context.TODO(), &pb.SetBatchRequest{
 			Db:   "test-db",
 			Data: make(map[string][]byte),
 		})
 
 		assert.Nil(t, err, fmt.Sprintf("%v", err))
-
-		if res != nil {
-			assert.Equal(t, "ok", res.Code)
-		}
 	})
 }
 

@@ -13,7 +13,7 @@ type DataServer struct {
 	dbCtx *db.DbContext
 }
 
-func (s *DataServer) Set(ctx context.Context, in *pb.SetRequest) (*pb.Result, error) {
+func (s *DataServer) Set(ctx context.Context, in *pb.SetRequest) (*pb.EmptyResult, error) {
 	db, err := s.dbCtx.GetDb(in.Db)
 	if err != nil {
 		return nil, err
@@ -29,7 +29,7 @@ func (s *DataServer) Set(ctx context.Context, in *pb.SetRequest) (*pb.Result, er
 		return nil, err
 	}
 
-	return &pb.Result{Code: "ok"}, nil
+	return &pb.EmptyResult{}, nil
 }
 
 func (s *DataServer) Get(ctx context.Context, in *pb.KeyRequest) (*pb.GetResult, error) {
@@ -60,7 +60,7 @@ func (s *DataServer) GetByPrefix(ctx context.Context, in *pb.PrefixRequest) (*pb
 	return &pb.PrefixResult{Data: data}, nil
 }
 
-func (s *DataServer) Delete(ctx context.Context, in *pb.KeyRequest) (*pb.Result, error) {
+func (s *DataServer) Delete(ctx context.Context, in *pb.KeyRequest) (*pb.EmptyResult, error) {
 	db, err := s.dbCtx.GetDb(in.Db)
 	if err != nil {
 		return nil, err
@@ -70,10 +70,10 @@ func (s *DataServer) Delete(ctx context.Context, in *pb.KeyRequest) (*pb.Result,
 		return nil, err
 	}
 
-	return &pb.Result{Code: "ok"}, nil
+	return &pb.EmptyResult{}, nil
 }
 
-func (s *DataServer) DeleteByPrefix(ctx context.Context, in *pb.PrefixRequest) (*pb.Result, error) {
+func (s *DataServer) DeleteByPrefix(ctx context.Context, in *pb.PrefixRequest) (*pb.EmptyResult, error) {
 	db, err := s.dbCtx.GetDb(in.Db)
 	if err != nil {
 		return nil, err
@@ -83,10 +83,10 @@ func (s *DataServer) DeleteByPrefix(ctx context.Context, in *pb.PrefixRequest) (
 		return nil, err
 	}
 
-	return &pb.Result{Code: "ok"}, nil
+	return &pb.EmptyResult{}, nil
 }
 
-func (s *DataServer) SetBatch(ctx context.Context, in *pb.SetBatchRequest) (*pb.Result, error) {
+func (s *DataServer) SetBatch(ctx context.Context, in *pb.SetBatchRequest) (*pb.EmptyResult, error) {
 	db, err := s.dbCtx.GetDb(in.Db)
 	if err != nil {
 		return nil, err
@@ -96,5 +96,5 @@ func (s *DataServer) SetBatch(ctx context.Context, in *pb.SetBatchRequest) (*pb.
 		return nil, err
 	}
 
-	return &pb.Result{Code: "ok"}, nil
+	return &pb.EmptyResult{}, nil
 }
