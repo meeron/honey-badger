@@ -1,5 +1,4 @@
 using Google.Protobuf;
-using Google.Protobuf.Collections;
 using Grpc.Core;
 using HoneyBadger.Client.Hb;
 
@@ -14,32 +13,77 @@ internal class HoneyBadgerData : IHoneyBadgerData
         _dataClient = new Data.DataClient(channel);
     }
 
-    public Task<byte[]?> GetAsync(string db, string key) =>
-        GetAsync<byte[]>(db, key, data => data.ToByteArray());
+    public Task<byte[]?> GetAsync(string db, string key)
+    {
+        Guard.NotNullOrEmpty(nameof(db), db);
+        Guard.NotNullOrEmpty(nameof(key), key);
+        
+        return GetAsync<byte[]>(db, key, data => data.ToByteArray());
+    }
 
-    public Task<string?> GetStringAsync(string db, string key) =>
-        GetAsync<string>(db, key, data => data.ToStringUtf8());
+    public Task<string?> GetStringAsync(string db, string key)
+    {
+        Guard.NotNullOrEmpty(nameof(db), db);
+        Guard.NotNullOrEmpty(nameof(key), key);
+        
+        return GetAsync<string>(db, key, data => data.ToStringUtf8());
+    }
 
-    public Task<IReadOnlyDictionary<string, byte[]>> GetByPrefixAsync(string db, string prefix) =>
-        GetByPrefix(db, prefix, data => data.ToByteArray());
-    
-    public Task<IReadOnlyDictionary<string, string>> GetStringsByPrefixAsync(string db, string prefix) =>
-        GetByPrefix(db, prefix, data => data.ToStringUtf8());
+    public Task<IReadOnlyDictionary<string, byte[]>> GetByPrefixAsync(string db, string prefix)
+    {
+        Guard.NotNullOrEmpty(nameof(db), db);
+        Guard.NotNullOrEmpty(nameof(prefix), prefix);
+        
+        return GetByPrefix(db, prefix, data => data.ToByteArray());
+    }
 
-    public Task<StatusCode> SetAsync(string db, string key, byte[] data, TimeSpan? ttl = null) =>
-        SetAsync(db, key, ByteString.CopyFrom(data), ttl);
+    public Task<IReadOnlyDictionary<string, string>> GetStringsByPrefixAsync(string db, string prefix)
+    {
+        Guard.NotNullOrEmpty(nameof(db), db);
+        Guard.NotNullOrEmpty(nameof(prefix), prefix);
+        
+        return GetByPrefix(db, prefix, data => data.ToStringUtf8());
+    }
 
-    public Task<StatusCode> SetAsync(string db, string key, string data, TimeSpan? ttl = null) =>
-        SetAsync(db, key, ByteString.CopyFromUtf8(data), ttl);
+    public Task<StatusCode> SetAsync(string db, string key, byte[] data, TimeSpan? ttl = null)
+    {
+        Guard.NotNullOrEmpty(nameof(db), db);
+        Guard.NotNullOrEmpty(nameof(key), key);
+        Guard.NotNull(nameof(data), data);
+        
+        return SetAsync(db, key, ByteString.CopyFrom(data), ttl);
+    }
 
-    public Task<StatusCode> SetBatchAsync(string db, IReadOnlyDictionary<string, byte[]> data) =>
-        SetBatchAsync(db, data, ByteString.CopyFrom);
+    public Task<StatusCode> SetAsync(string db, string key, string data, TimeSpan? ttl = null)
+    {
+        Guard.NotNullOrEmpty(nameof(db), db);
+        Guard.NotNullOrEmpty(nameof(key), key);
+        Guard.NotNullOrEmpty(nameof(data), data);
+        
+        return SetAsync(db, key, ByteString.CopyFromUtf8(data), ttl);
+    }
 
-    public Task<StatusCode> SetBatchAsync(string db, IReadOnlyDictionary<string, string> data) =>
-        SetBatchAsync(db, data, ByteString.CopyFromUtf8);
+    public Task<StatusCode> SetBatchAsync(string db, IReadOnlyDictionary<string, byte[]> data)
+    {
+        Guard.NotNullOrEmpty(nameof(db), db);
+        Guard.NotNull(nameof(data), data);
+        
+        return SetBatchAsync(db, data, ByteString.CopyFrom);
+    }
+
+    public Task<StatusCode> SetBatchAsync(string db, IReadOnlyDictionary<string, string> data)
+    {
+        Guard.NotNullOrEmpty(nameof(db), db);
+        Guard.NotNull(nameof(data), data);
+        
+        return SetBatchAsync(db, data, ByteString.CopyFromUtf8);
+    }
 
     public async Task<StatusCode> DeleteAsync(string db, string key)
     {
+        Guard.NotNullOrEmpty(nameof(db), db);
+        Guard.NotNullOrEmpty(nameof(key), key);
+        
         var res = await _dataClient.DeleteAsync(new KeyRequest
         {
             Db = db,
@@ -50,6 +94,9 @@ internal class HoneyBadgerData : IHoneyBadgerData
 
     public async Task<StatusCode> DeleteByPrefixAsync(string db, string prefix)
     {
+        Guard.NotNullOrEmpty(nameof(db), db);
+        Guard.NotNullOrEmpty(nameof(prefix), prefix);
+        
         var res = await _dataClient.DeleteByPrefixAsync(new PrefixRequest
         {
             Db = db,
