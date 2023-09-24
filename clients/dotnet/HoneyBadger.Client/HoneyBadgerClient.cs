@@ -1,5 +1,5 @@
 using Grpc.Net.Client;
-using Hb;
+using HoneyBadger.Client.Hb;
 using HoneyBadger.Client.Internal;
 
 namespace HoneyBadger.Client;
