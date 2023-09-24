@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HoneyBadger.Client", "Honey
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ClientApp", "ClientApp\ClientApp.csproj", "{D17F4135-8BF3-4E9D-BAF4-96155BC84F0B}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HoneyBadger.Client.Caching", "HoneyBadger.Client.Caching\HoneyBadger.Client.Caching.csproj", "{7EF08BD6-12C4-4ABD-AC28-2342B55512D0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{D17F4135-8BF3-4E9D-BAF4-96155BC84F0B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D17F4135-8BF3-4E9D-BAF4-96155BC84F0B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D17F4135-8BF3-4E9D-BAF4-96155BC84F0B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7EF08BD6-12C4-4ABD-AC28-2342B55512D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7EF08BD6-12C4-4ABD-AC28-2342B55512D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7EF08BD6-12C4-4ABD-AC28-2342B55512D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7EF08BD6-12C4-4ABD-AC28-2342B55512D0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal

@@ -21,6 +21,20 @@ internal class HoneyBadgerData : IHoneyBadgerData
         return GetAsync<byte[]>(db, key, data => data.ToByteArray());
     }
 
+    public byte[]? Get(string db, string key)
+    {
+        Guard.NotNullOrEmpty(nameof(db), db);
+        Guard.NotNullOrEmpty(nameof(key), key);
+        
+        var res = _dataClient.Get(new KeyRequest
+        {
+            Db = db,
+            Key = key,
+        });
+
+        return res.Hit ? res.Data.ToByteArray() : null;
+    }
+
     public Task<string?> GetStringAsync(string db, string key)
     {
         Guard.NotNullOrEmpty(nameof(db), db);
@@ -52,6 +66,23 @@ internal class HoneyBadgerData : IHoneyBadgerData
         Guard.NotNull(nameof(data), data);
         
         return SetAsync(db, key, ByteString.CopyFrom(data), ttl);
+    }
+
+    public StatusCode Set(string db, string key, byte[] data, TimeSpan? ttl = null)
+    {
+        Guard.NotNullOrEmpty(nameof(db), db);
+        Guard.NotNullOrEmpty(nameof(key), key);
+        Guard.NotNull(nameof(data), data);
+
+        var res = _dataClient.Set(new SetRequest
+        {
+            Db = db,
+            Key = key,
+            Data = ByteString.CopyFrom(data),
+            Ttl = (int)Math.Round(ttl?.TotalSeconds ?? 0),
+        });
+
+        return res.Code.ToStatusCode();
     }
 
     public Task<StatusCode> SetAsync(string db, string key, string data, TimeSpan? ttl = null)
@@ -90,6 +121,18 @@ internal class HoneyBadgerData : IHoneyBadgerData
             Key = key,
         });
         return res.Code.ToStatusCode();
+    }
+
+    public StatusCode Delete(string db, string key)
+    {
+        Guard.NotNullOrEmpty(nameof(db), db);
+        Guard.NotNullOrEmpty(nameof(key), key);
+
+        return _dataClient.Delete(new KeyRequest
+        {
+            Db = db,
+            Key = key,
+        }).Code.ToStatusCode();
     }
 
     public async Task<StatusCode> DeleteByPrefixAsync(string db, string prefix)
