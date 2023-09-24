@@ -12,12 +12,15 @@ public class HoneyBadgerClient : IHoneyBadgerClient
     public HoneyBadgerClient(string address)
     {
         _channel = GrpcChannel.ForAddress(NormalizeAddress(address));
-
-        Data = new HoneyBadgerData(_channel);
         _sysClient = new Sys.SysClient(_channel);
+        
+        Data = new HoneyBadgerData(_channel);
+        Db = new HoneyBadgerDb(_channel);
     }
     
     public IHoneyBadgerData Data { get; }
+    
+    public IHoneyBadgerDb Db { get; }
 
     public async Task<StatusCode> PingAsync()
     {
