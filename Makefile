@@ -20,3 +20,12 @@ test:
 docker:
 	docker build --build-arg ver=$(ver) -t meeron/honey-badger:$(ver) -t meeron/honey-badger:latest .
 
+build-dotnet-client:
+	dotnet restore ./clients/dotnet/HoneyBadger.Client.sln
+	dotnet build ./clients/dotnet/HoneyBadger.Client.sln -c $(c)
+
+test-dotnet-client: build-dotnet-client
+	dotnet test ./clients/dotnet/HoneyBadger.Client.sln
+
+pack-dotnet-client: build-dotnet-client
+	dotnet pack ./clients/dotnet/HoneyBadger.Client.sln --no-build -o ./nugets

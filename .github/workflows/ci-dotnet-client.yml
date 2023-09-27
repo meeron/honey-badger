@@ -1,0 +1,22 @@
+name: Build HoneyBadger.Client
+
+on:
+  push:
+    branches: [ "master" ]
+    paths: [ "clients/dotnet/**" ]
+  pull_request:
+    branches: [ "master" ]
+    paths: [ "clients/dotnet/**" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+
+    - name: Setup dotnet 7.0
+      uses: actions/setup-dotnet@v1
+      with:
+        dotnet-version: '7.0.x'
+    - name: Build & test
+      run: make test-dotnet-client c=Debug
