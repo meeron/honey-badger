@@ -10,6 +10,7 @@
         <PackageProjectUrl>https://github.com/meeron/honey-badger</PackageProjectUrl>
         <PublishRepositoryUrl>true</PublishRepositoryUrl>
         <IncludeSymbols>true</IncludeSymbols>
+        <SymbolPackageFormat>snupkg</SymbolPackageFormat>
         <PackageReadmeFile>readme.md</PackageReadmeFile>
         <TargetFramework>net7.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
