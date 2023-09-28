@@ -21,9 +21,11 @@
             <PrivateAssets>all</PrivateAssets>
         </PackageReference>
         <PackageReference Include="Shouldly" Version="4.2.1" />
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
     </ItemGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\HoneyBadger.Client.Caching\HoneyBadger.Client.Caching.csproj" />
       <ProjectReference Include="..\HoneyBadger.Client\HoneyBadger.Client.csproj" />
     </ItemGroup>
 
