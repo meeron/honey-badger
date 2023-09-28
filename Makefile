@@ -2,7 +2,7 @@ dev:
 	go run .
 
 build:
-	cd src && go build -o ./bin/hb -ldflags "-X main.version=$(ver)" .
+	cd src && go build -o ../bin/hb -ldflags "-X main.version=$(ver)" .
 	cp ./src/config.json ./bin/config.json
 
 run: build
