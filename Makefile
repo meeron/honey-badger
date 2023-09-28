@@ -28,4 +28,4 @@ test-dotnet-client: build-dotnet-client
 	dotnet test ./clients/dotnet/HoneyBadger.Client.sln
 
 pack-dotnet-client: build-dotnet-client
-	dotnet pack ./clients/dotnet/HoneyBadger.Client.sln --no-build -o ./nugets
+	dotnet pack ./clients/dotnet/HoneyBadger.Client.sln --no-build -o ./nugets -c $(c)
