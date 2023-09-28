@@ -1,25 +1,26 @@
 syntax = "proto3";
 
 option go_package = "github.com/meeron/honey-badger/pb";
+option csharp_namespace = "HoneyBadger.Client.Hb";
 
 package hb;
 
 service Data {
-    rpc Set(SetRequest) returns (Result) {}
+    rpc Set(SetRequest) returns (EmptyResult) {}
     rpc Get(KeyRequest) returns (GetResult) {}
     rpc GetByPrefix(PrefixRequest) returns (PrefixResult) {}
-    rpc Delete(KeyRequest) returns (Result) {}
-    rpc DeleteByPrefix(PrefixRequest) returns (Result) {}
-    rpc SetBatch(SetBatchRequest) returns (Result) {}
+    rpc Delete(KeyRequest) returns (EmptyResult) {}
+    rpc DeleteByPrefix(PrefixRequest) returns (EmptyResult) {}
+    rpc SetBatch(SetBatchRequest) returns (EmptyResult) {}
 }
 
 service Db {
-    rpc Create(CreateDbRequest) returns (Result) {}
-    rpc Drop(DropDbRequest) returns (Result) {}
+    rpc Create(CreateDbRequest) returns (EmptyResult) {}
+    rpc Drop(DropDbRequest) returns (EmptyResult) {}
 }
 
 service Sys {
-    rpc Ping(PingRequest) returns (Result) {}
+    rpc Ping(PingRequest) returns (PingResult) {}
 }
 
 message SetRequest {
@@ -37,11 +38,6 @@ message KeyRequest {
 message GetResult {
     bool hit = 1;
     bytes data = 2;
-}
-
-message Result {
-    string code = 1;
-    optional string error = 2;
 }
 
 message PrefixRequest {
@@ -68,3 +64,9 @@ message DropDbRequest {
 }
 
 message PingRequest {}
+
+message PingResult {
+    string mesage = 1;
+}
+
+message EmptyResult {}

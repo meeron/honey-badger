@@ -1,0 +1,34 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.31903.59
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HoneyBadger.Client", "HoneyBadger.Client\HoneyBadger.Client.csproj", "{FDC3F313-F2C5-4011-B791-43FC6B8C0DB1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HoneyBadger.Client.Caching", "HoneyBadger.Client.Caching\HoneyBadger.Client.Caching.csproj", "{7EF08BD6-12C4-4ABD-AC28-2342B55512D0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HoneyBadger.Client.IntegrationTests", "HoneyBadger.Client.IntegrationTests\HoneyBadger.Client.IntegrationTests.csproj", "{05ABF092-EEF5-4AC1-8FC0-1EB196C2E6C7}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{FDC3F313-F2C5-4011-B791-43FC6B8C0DB1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FDC3F313-F2C5-4011-B791-43FC6B8C0DB1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FDC3F313-F2C5-4011-B791-43FC6B8C0DB1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FDC3F313-F2C5-4011-B791-43FC6B8C0DB1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7EF08BD6-12C4-4ABD-AC28-2342B55512D0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7EF08BD6-12C4-4ABD-AC28-2342B55512D0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7EF08BD6-12C4-4ABD-AC28-2342B55512D0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7EF08BD6-12C4-4ABD-AC28-2342B55512D0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{05ABF092-EEF5-4AC1-8FC0-1EB196C2E6C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{05ABF092-EEF5-4AC1-8FC0-1EB196C2E6C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{05ABF092-EEF5-4AC1-8FC0-1EB196C2E6C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{05ABF092-EEF5-4AC1-8FC0-1EB196C2E6C7}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+EndGlobal
