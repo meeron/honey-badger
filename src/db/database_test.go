@@ -2,6 +2,7 @@ package db
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
 	"github.com/meeron/honey-badger/config"
@@ -138,6 +139,28 @@ func TestSetBatch(t *testing.T) {
 
 		assert.Nil(t, err)
 		assert.Equal(t, len(data), len(dbData))
+	})
+}
+
+func TestStreamData(t *testing.T) {
+	db := getDb()
+
+	t.Run("should stream data", func(t *testing.T) {
+		resultData := make(map[string][]byte)
+		data := map[string][]byte{
+			"stream-1": make([]byte, 1),
+			"stream-2": make([]byte, 1),
+			"stream-3": make([]byte, 1),
+		}
+		db.SetBatch(data)
+
+		err := db.StreamData(context.TODO(), "stream-", func(key string, data []byte) error {
+			resultData[key] = data
+			return nil
+		})
+
+		assert.Nil(t, err, fmt.Sprintf("%v", err))
+		assert.Equal(t, len(data), len(resultData))
 	})
 }
 

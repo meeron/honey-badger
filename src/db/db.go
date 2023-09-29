@@ -173,28 +173,3 @@ func startGCRoutine(ctx *DbContext) {
 		}
 	}()
 }
-
-/*
-func notifySignal() {
-	signalChannel := make(chan os.Signal, 1)
-	signal.Notify(signalChannel, os.Interrupt, syscall.SIGTERM)
-
-	go func() {
-		log := logger.Get("db")
-
-		sig := <-signalChannel
-		log.Infof("%s", sig)
-
-		gcTicker.Stop()
-		log.Infof("GC ticker closed")
-
-		for name, db := range dbs {
-			log.Infof("Closing database '%s'", name)
-			if err := db.b.Close(); err != nil {
-				log.Error(err)
-			}
-		}
-
-		os.Exit(0)
-	}()
-}*/

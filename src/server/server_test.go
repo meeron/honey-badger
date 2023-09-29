@@ -112,7 +112,7 @@ func TestDataServer(t *testing.T) {
 		_, errRecv := res.Recv()
 
 		assert.Nil(t, err, fmt.Sprintf("%v", err))
-		assert.Equal(t, errRecv, io.EOF)
+		assert.Equal(t, io.EOF, errRecv)
 	})
 }
 

@@ -141,3 +141,26 @@ func (db *Database) SetBatch(data map[string][]byte) error {
 
 	return w.Flush()
 }
+
+func (db *Database) StreamData(ctx context.Context, prefix string, send func(key string, data []byte) error) error {
+	stream := db.b.NewStream()
+
+	stream.LogPrefix = "GetByPrefix"
+	stream.Prefix = []byte(prefix)
+	stream.Send = func(buf *z.Buffer) error {
+		list, err := badger.BufferToKVList(buf)
+		if err != nil {
+			return err
+		}
+
+		for _, kv := range list.Kv {
+			if err := send(string(kv.Key), kv.Value); err != nil {
+				return err
+			}
+		}
+
+		return nil
+	}
+
+	return stream.Orchestrate(ctx)
+}
