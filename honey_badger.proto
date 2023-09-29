@@ -8,9 +8,6 @@ package hb;
 service Data {
     rpc Set(SetRequest) returns (EmptyResult) {}
     rpc Get(KeyRequest) returns (GetResult) {}
-    rpc GetByPrefix(PrefixRequest) returns (PrefixResult) {
-        option deprecated = true;
-    }
     rpc Delete(KeyRequest) returns (EmptyResult) {}
     rpc DeleteByPrefix(PrefixRequest) returns (EmptyResult) {}
     rpc SetBatch(SetBatchRequest) returns (EmptyResult) {}
@@ -46,11 +43,6 @@ message GetResult {
 message PrefixRequest {
     string db = 1;
     string prefix = 2;
-}
-
-message PrefixResult {
-    option deprecated = true;
-    map<string, bytes> data = 1;
 }
 
 message SetBatchRequest {

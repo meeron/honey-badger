@@ -66,15 +66,6 @@ func TestDataServer(t *testing.T) {
 		assert.Nil(t, err, fmt.Sprintf("%v", err))
 	})
 
-	t.Run("should call get by prefix", func(t *testing.T) {
-		_, err := client.GetByPrefix(context.TODO(), &pb.PrefixRequest{
-			Db:     "test-db",
-			Prefix: "test-",
-		})
-
-		assert.Nil(t, err, fmt.Sprintf("%v", err))
-	})
-
 	t.Run("should call delete", func(t *testing.T) {
 		_, err := client.Delete(context.TODO(), &pb.KeyRequest{
 			Db:  "test-db",

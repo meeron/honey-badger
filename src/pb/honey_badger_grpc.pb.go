@@ -21,7 +21,6 @@ const _ = grpc.SupportPackageIsVersion7
 const (
 	Data_Set_FullMethodName            = "/hb.Data/Set"
 	Data_Get_FullMethodName            = "/hb.Data/Get"
-	Data_GetByPrefix_FullMethodName    = "/hb.Data/GetByPrefix"
 	Data_Delete_FullMethodName         = "/hb.Data/Delete"
 	Data_DeleteByPrefix_FullMethodName = "/hb.Data/DeleteByPrefix"
 	Data_SetBatch_FullMethodName       = "/hb.Data/SetBatch"
@@ -34,8 +33,6 @@ const (
 type DataClient interface {
 	Set(ctx context.Context, in *SetRequest, opts ...grpc.CallOption) (*EmptyResult, error)
 	Get(ctx context.Context, in *KeyRequest, opts ...grpc.CallOption) (*GetResult, error)
-	// Deprecated: Do not use.
-	GetByPrefix(ctx context.Context, in *PrefixRequest, opts ...grpc.CallOption) (*PrefixResult, error)
 	Delete(ctx context.Context, in *KeyRequest, opts ...grpc.CallOption) (*EmptyResult, error)
 	DeleteByPrefix(ctx context.Context, in *PrefixRequest, opts ...grpc.CallOption) (*EmptyResult, error)
 	SetBatch(ctx context.Context, in *SetBatchRequest, opts ...grpc.CallOption) (*EmptyResult, error)
@@ -62,16 +59,6 @@ func (c *dataClient) Set(ctx context.Context, in *SetRequest, opts ...grpc.CallO
 func (c *dataClient) Get(ctx context.Context, in *KeyRequest, opts ...grpc.CallOption) (*GetResult, error) {
 	out := new(GetResult)
 	err := c.cc.Invoke(ctx, Data_Get_FullMethodName, in, out, opts...)
-	if err != nil {
-		return nil, err
-	}
-	return out, nil
-}
-
-// Deprecated: Do not use.
-func (c *dataClient) GetByPrefix(ctx context.Context, in *PrefixRequest, opts ...grpc.CallOption) (*PrefixResult, error) {
-	out := new(PrefixResult)
-	err := c.cc.Invoke(ctx, Data_GetByPrefix_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
 	}
@@ -143,8 +130,6 @@ func (x *dataGetDataStreamClient) Recv() (*DataItem, error) {
 type DataServer interface {
 	Set(context.Context, *SetRequest) (*EmptyResult, error)
 	Get(context.Context, *KeyRequest) (*GetResult, error)
-	// Deprecated: Do not use.
-	GetByPrefix(context.Context, *PrefixRequest) (*PrefixResult, error)
 	Delete(context.Context, *KeyRequest) (*EmptyResult, error)
 	DeleteByPrefix(context.Context, *PrefixRequest) (*EmptyResult, error)
 	SetBatch(context.Context, *SetBatchRequest) (*EmptyResult, error)
@@ -161,9 +146,6 @@ func (UnimplementedDataServer) Set(context.Context, *SetRequest) (*EmptyResult, 
 }
 func (UnimplementedDataServer) Get(context.Context, *KeyRequest) (*GetResult, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
-}
-func (UnimplementedDataServer) GetByPrefix(context.Context, *PrefixRequest) (*PrefixResult, error) {
-	return nil, status.Errorf(codes.Unimplemented, "method GetByPrefix not implemented")
 }
 func (UnimplementedDataServer) Delete(context.Context, *KeyRequest) (*EmptyResult, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method Delete not implemented")
@@ -222,24 +204,6 @@ func _Data_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{
 	}
 	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
 		return srv.(DataServer).Get(ctx, req.(*KeyRequest))
-	}
-	return interceptor(ctx, in, info, handler)
-}
-
-func _Data_GetByPrefix_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
-	in := new(PrefixRequest)
-	if err := dec(in); err != nil {
-		return nil, err
-	}
-	if interceptor == nil {
-		return srv.(DataServer).GetByPrefix(ctx, in)
-	}
-	info := &grpc.UnaryServerInfo{
-		Server:     srv,
-		FullMethod: Data_GetByPrefix_FullMethodName,
-	}
-	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
-		return srv.(DataServer).GetByPrefix(ctx, req.(*PrefixRequest))
 	}
 	return interceptor(ctx, in, info, handler)
 }
@@ -333,10 +297,6 @@ var Data_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "Get",
 			Handler:    _Data_Get_Handler,
-		},
-		{
-			MethodName: "GetByPrefix",
-			Handler:    _Data_GetByPrefix_Handler,
 		},
 		{
 			MethodName: "Delete",
