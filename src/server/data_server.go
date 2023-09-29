@@ -95,10 +95,5 @@ func (s *DataServer) GetDataStream(in *pb.DataStreamRequest, stream pb.Data_GetD
 		return nil
 	}
 
-	return db.StreamData(stream.Context(), *in.Prefix, func(key string, data []byte) error {
-		return stream.Send(&pb.DataItem{
-			Key:  key,
-			Data: data,
-		})
-	})
+	return db.ReadDataByPrefix(stream.Context(), *in.Prefix, stream.Send)
 }

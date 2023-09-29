@@ -6,6 +6,7 @@ import (
 
 	"github.com/dgraph-io/badger/v4"
 	"github.com/dgraph-io/ristretto/z"
+	hpb "github.com/meeron/honey-badger/pb"
 )
 
 type Database struct {
@@ -26,6 +27,8 @@ type DbStats struct {
 type DbMetrics struct {
 	KeysAdded uint64
 }
+
+type ReadDataClbk func(*hpb.DataItem) error
 
 func (db *Database) Get(key string) ([]byte, bool, error) {
 	txn := db.b.NewTransaction(false)
@@ -119,10 +122,10 @@ func (db *Database) SetBatch(data map[string][]byte) error {
 	return w.Flush()
 }
 
-func (db *Database) StreamData(ctx context.Context, prefix string, send func(key string, data []byte) error) error {
+func (db *Database) ReadDataByPrefix(ctx context.Context, prefix string, callback ReadDataClbk) error {
 	stream := db.b.NewStream()
 
-	stream.LogPrefix = "GetByPrefix"
+	stream.LogPrefix = "ReadDataByPrefix"
 	stream.Prefix = []byte(prefix)
 	stream.Send = func(buf *z.Buffer) error {
 		list, err := badger.BufferToKVList(buf)
@@ -131,7 +134,11 @@ func (db *Database) StreamData(ctx context.Context, prefix string, send func(key
 		}
 
 		for _, kv := range list.Kv {
-			if err := send(string(kv.Key), kv.Value); err != nil {
+			item := hpb.DataItem{
+				Key:  string(kv.Key),
+				Data: kv.Value,
+			}
+			if err := callback(&item); err != nil {
 				return err
 			}
 		}

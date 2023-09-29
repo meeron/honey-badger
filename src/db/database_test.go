@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/meeron/honey-badger/config"
+	"github.com/meeron/honey-badger/pb"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -125,8 +126,8 @@ func TestStreamData(t *testing.T) {
 		}
 		db.SetBatch(data)
 
-		err := db.StreamData(context.TODO(), "stream-", func(key string, data []byte) error {
-			resultData[key] = data
+		err := db.ReadDataByPrefix(context.TODO(), "stream-", func(item *pb.DataItem) error {
+			resultData[item.Key] = item.Data
 			return nil
 		})
 
