@@ -3,6 +3,7 @@ package bench
 import (
 	"context"
 	"fmt"
+	"io"
 	"log"
 	"runtime"
 	"sync"
@@ -27,7 +28,7 @@ var (
 )
 
 const (
-	DbName      = "bench"
+	DbName      = "bench_v2"
 	PayloadSize = 256
 	NumGoProc   = 20
 )
@@ -124,6 +125,59 @@ func benchSetBatch(target string) {
 	}
 }
 
+func benchGetStreamData(target string) {
+	conn, err := grpc.Dial(target, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	if err != nil {
+		log.Fatalf("did not connect: %v", err)
+	}
+	defer conn.Close()
+
+	client := pb.NewDataClient(conn)
+
+	fmt.Println("")
+	fmt.Printf("payload size: %d bytes\n", PayloadSize)
+	fmt.Printf("num goroutines: %d\n", 1)
+
+	for i := 0; i < len(batchIts); i++ {
+		data := make(map[string][]byte)
+
+		for j := 0; j < batchIts[i]; j++ {
+			data[fmt.Sprintf("batch-%d-%d", i, j)] = make([]byte, PayloadSize)
+		}
+
+		_, err := client.SetBatch(context.TODO(), &pb.SetBatchRequest{
+			Db:   DbName,
+			Data: data,
+		})
+		if err != nil {
+			panic(err)
+		}
+
+		prefix := fmt.Sprintf("batch-%d-", i)
+
+		start := time.Now()
+		stream, errGet := client.GetDataStream(context.TODO(), &pb.DataStreamRequest{
+			Db:     DbName,
+			Prefix: &prefix,
+		})
+		if errGet != nil {
+			panic(errGet)
+		}
+
+		for {
+			_, err := stream.Recv()
+			if err == io.EOF {
+				break
+			}
+			if err != nil {
+				panic(err)
+			}
+		}
+
+		fmt.Printf("GetDataStream_%d: %s\n", batchIts[i], time.Since(start))
+	}
+}
+
 func sendSet(index int, client pb.DataClient, payload []byte, limiter <-chan int, wg *sync.WaitGroup) {
 	_, err := client.Set(context.TODO(), &pb.SetRequest{
 		Db:   DbName,
@@ -156,4 +210,5 @@ func Run(target string) {
 	benchSet(target)
 	benchGet(target)
 	benchSetBatch(target)
+	benchGetStreamData(target)
 }

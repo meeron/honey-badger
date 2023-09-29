@@ -2,6 +2,7 @@ package server
 
 import (
 	"context"
+	"errors"
 
 	"github.com/meeron/honey-badger/db"
 	"github.com/meeron/honey-badger/pb"
@@ -47,17 +48,7 @@ func (s *DataServer) Get(ctx context.Context, in *pb.KeyRequest) (*pb.GetResult,
 }
 
 func (s *DataServer) GetByPrefix(ctx context.Context, in *pb.PrefixRequest) (*pb.PrefixResult, error) {
-	db, err := s.dbCtx.GetDb(in.Db)
-	if err != nil {
-		return nil, err
-	}
-
-	data, err := db.GetByPrefix(ctx, in.Prefix)
-	if err != nil {
-		return nil, err
-	}
-
-	return &pb.PrefixResult{Data: data}, nil
+	return nil, errors.New("not supported: use 'GetDataStream' method instead")
 }
 
 func (s *DataServer) Delete(ctx context.Context, in *pb.KeyRequest) (*pb.EmptyResult, error) {
