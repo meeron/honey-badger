@@ -25,6 +25,7 @@ const (
 	Data_Delete_FullMethodName         = "/hb.Data/Delete"
 	Data_DeleteByPrefix_FullMethodName = "/hb.Data/DeleteByPrefix"
 	Data_SetBatch_FullMethodName       = "/hb.Data/SetBatch"
+	Data_GetDataStream_FullMethodName  = "/hb.Data/GetDataStream"
 )
 
 // DataClient is the client API for Data service.
@@ -33,10 +34,12 @@ const (
 type DataClient interface {
 	Set(ctx context.Context, in *SetRequest, opts ...grpc.CallOption) (*EmptyResult, error)
 	Get(ctx context.Context, in *KeyRequest, opts ...grpc.CallOption) (*GetResult, error)
+	// Deprecated: Do not use.
 	GetByPrefix(ctx context.Context, in *PrefixRequest, opts ...grpc.CallOption) (*PrefixResult, error)
 	Delete(ctx context.Context, in *KeyRequest, opts ...grpc.CallOption) (*EmptyResult, error)
 	DeleteByPrefix(ctx context.Context, in *PrefixRequest, opts ...grpc.CallOption) (*EmptyResult, error)
 	SetBatch(ctx context.Context, in *SetBatchRequest, opts ...grpc.CallOption) (*EmptyResult, error)
+	GetDataStream(ctx context.Context, in *DataStreamRequest, opts ...grpc.CallOption) (Data_GetDataStreamClient, error)
 }
 
 type dataClient struct {
@@ -65,6 +68,7 @@ func (c *dataClient) Get(ctx context.Context, in *KeyRequest, opts ...grpc.CallO
 	return out, nil
 }
 
+// Deprecated: Do not use.
 func (c *dataClient) GetByPrefix(ctx context.Context, in *PrefixRequest, opts ...grpc.CallOption) (*PrefixResult, error) {
 	out := new(PrefixResult)
 	err := c.cc.Invoke(ctx, Data_GetByPrefix_FullMethodName, in, out, opts...)
@@ -101,16 +105,50 @@ func (c *dataClient) SetBatch(ctx context.Context, in *SetBatchRequest, opts ...
 	return out, nil
 }
 
+func (c *dataClient) GetDataStream(ctx context.Context, in *DataStreamRequest, opts ...grpc.CallOption) (Data_GetDataStreamClient, error) {
+	stream, err := c.cc.NewStream(ctx, &Data_ServiceDesc.Streams[0], Data_GetDataStream_FullMethodName, opts...)
+	if err != nil {
+		return nil, err
+	}
+	x := &dataGetDataStreamClient{stream}
+	if err := x.ClientStream.SendMsg(in); err != nil {
+		return nil, err
+	}
+	if err := x.ClientStream.CloseSend(); err != nil {
+		return nil, err
+	}
+	return x, nil
+}
+
+type Data_GetDataStreamClient interface {
+	Recv() (*DataItem, error)
+	grpc.ClientStream
+}
+
+type dataGetDataStreamClient struct {
+	grpc.ClientStream
+}
+
+func (x *dataGetDataStreamClient) Recv() (*DataItem, error) {
+	m := new(DataItem)
+	if err := x.ClientStream.RecvMsg(m); err != nil {
+		return nil, err
+	}
+	return m, nil
+}
+
 // DataServer is the server API for Data service.
 // All implementations must embed UnimplementedDataServer
 // for forward compatibility
 type DataServer interface {
 	Set(context.Context, *SetRequest) (*EmptyResult, error)
 	Get(context.Context, *KeyRequest) (*GetResult, error)
+	// Deprecated: Do not use.
 	GetByPrefix(context.Context, *PrefixRequest) (*PrefixResult, error)
 	Delete(context.Context, *KeyRequest) (*EmptyResult, error)
 	DeleteByPrefix(context.Context, *PrefixRequest) (*EmptyResult, error)
 	SetBatch(context.Context, *SetBatchRequest) (*EmptyResult, error)
+	GetDataStream(*DataStreamRequest, Data_GetDataStreamServer) error
 	mustEmbedUnimplementedDataServer()
 }
 
@@ -135,6 +173,9 @@ func (UnimplementedDataServer) DeleteByPrefix(context.Context, *PrefixRequest) (
 }
 func (UnimplementedDataServer) SetBatch(context.Context, *SetBatchRequest) (*EmptyResult, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method SetBatch not implemented")
+}
+func (UnimplementedDataServer) GetDataStream(*DataStreamRequest, Data_GetDataStreamServer) error {
+	return status.Errorf(codes.Unimplemented, "method GetDataStream not implemented")
 }
 func (UnimplementedDataServer) mustEmbedUnimplementedDataServer() {}
 
@@ -257,6 +298,27 @@ func _Data_SetBatch_Handler(srv interface{}, ctx context.Context, dec func(inter
 	return interceptor(ctx, in, info, handler)
 }
 
+func _Data_GetDataStream_Handler(srv interface{}, stream grpc.ServerStream) error {
+	m := new(DataStreamRequest)
+	if err := stream.RecvMsg(m); err != nil {
+		return err
+	}
+	return srv.(DataServer).GetDataStream(m, &dataGetDataStreamServer{stream})
+}
+
+type Data_GetDataStreamServer interface {
+	Send(*DataItem) error
+	grpc.ServerStream
+}
+
+type dataGetDataStreamServer struct {
+	grpc.ServerStream
+}
+
+func (x *dataGetDataStreamServer) Send(m *DataItem) error {
+	return x.ServerStream.SendMsg(m)
+}
+
 // Data_ServiceDesc is the grpc.ServiceDesc for Data service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -289,7 +351,13 @@ var Data_ServiceDesc = grpc.ServiceDesc{
 			Handler:    _Data_SetBatch_Handler,
 		},
 	},
-	Streams:  []grpc.StreamDesc{},
+	Streams: []grpc.StreamDesc{
+		{
+			StreamName:    "GetDataStream",
+			Handler:       _Data_GetDataStream_Handler,
+			ServerStreams: true,
+		},
+	},
 	Metadata: "honey_badger.proto",
 }
 

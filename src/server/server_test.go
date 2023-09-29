@@ -3,6 +3,7 @@ package server
 import (
 	"context"
 	"fmt"
+	"io"
 	"testing"
 	"time"
 
@@ -99,6 +100,19 @@ func TestDataServer(t *testing.T) {
 		})
 
 		assert.Nil(t, err, fmt.Sprintf("%v", err))
+	})
+
+	t.Run("should call get data stream", func(t *testing.T) {
+		prefix := "data-stream-"
+		res, err := client.GetDataStream(context.TODO(), &pb.DataStreamRequest{
+			Db:     "test-db",
+			Prefix: &prefix,
+		})
+
+		_, errRecv := res.Recv()
+
+		assert.Nil(t, err, fmt.Sprintf("%v", err))
+		assert.Equal(t, errRecv, io.EOF)
 	})
 }
 

@@ -98,3 +98,28 @@ func (s *DataServer) SetBatch(ctx context.Context, in *pb.SetBatchRequest) (*pb.
 
 	return &pb.EmptyResult{}, nil
 }
+
+func (s *DataServer) GetDataStream(in *pb.DataStreamRequest, stream pb.Data_GetDataStreamServer) error {
+	db, err := s.dbCtx.GetDb(in.Db)
+	if err != nil {
+		return err
+	}
+
+	if in.Prefix == nil {
+		return nil
+	}
+
+	data, err := db.GetByPrefix(stream.Context(), *in.Prefix)
+	if err != nil {
+		return err
+	}
+
+	for key, itm := range data {
+		stream.Send(&pb.DataItem{
+			Key:  key,
+			Data: itm,
+		})
+	}
+
+	return nil
+}
