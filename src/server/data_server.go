@@ -2,6 +2,8 @@ package server
 
 import (
 	"context"
+	"errors"
+	"io"
 
 	"github.com/meeron/honey-badger/db"
 	"github.com/meeron/honey-badger/pb"
@@ -72,20 +74,7 @@ func (s *DataServer) DeleteByPrefix(ctx context.Context, in *pb.PrefixRequest) (
 	return &pb.EmptyResult{}, nil
 }
 
-func (s *DataServer) SetBatch(ctx context.Context, in *pb.SetBatchRequest) (*pb.EmptyResult, error) {
-	db, err := s.dbCtx.GetDb(in.Db)
-	if err != nil {
-		return nil, err
-	}
-
-	if err := db.SetBatch(in.Data); err != nil {
-		return nil, err
-	}
-
-	return &pb.EmptyResult{}, nil
-}
-
-func (s *DataServer) GetDataStream(in *pb.DataStreamRequest, stream pb.Data_GetDataStreamServer) error {
+func (s *DataServer) CreateReadStream(in *pb.ReadStreamReq, stream pb.Data_CreateReadStreamServer) error {
 	db, err := s.dbCtx.GetDb(in.Db)
 	if err != nil {
 		return err
@@ -96,4 +85,43 @@ func (s *DataServer) GetDataStream(in *pb.DataStreamRequest, stream pb.Data_GetD
 	}
 
 	return db.ReadDataByPrefix(stream.Context(), *in.Prefix, stream.Send)
+}
+
+func (s *DataServer) CreateSendStream(stream pb.Data_CreateSendStreamServer) error {
+	dbItem, err := stream.Recv()
+	if err != nil {
+		return err
+	}
+
+	if dbItem.Db == "" {
+		return errors.New("invalid db: database should be in first message")
+	}
+
+	db, err := s.dbCtx.GetDb(dbItem.Db)
+	if err != nil {
+		return err
+	}
+
+	writer := db.NewWriter()
+	defer writer.Close()
+
+	for {
+		item, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+
+		if err := writer.Write(item.Item); err != nil {
+			return err
+		}
+	}
+
+	if err := writer.Commit(); err != nil {
+		return err
+	}
+
+	return stream.SendAndClose(&pb.EmptyResult{})
 }

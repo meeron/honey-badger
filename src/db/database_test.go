@@ -96,35 +96,22 @@ func TestDeleteByPrefix(t *testing.T) {
 	})
 }
 
-func TestSetBatch(t *testing.T) {
-	db := getDb()
-
-	t.Run("should set batch entries", func(t *testing.T) {
-		data := map[string][]byte{
-			"batch-1": make([]byte, 1),
-			"batch-2": make([]byte, 1),
-			"batch-3": make([]byte, 1),
-			"batch-4": make([]byte, 1),
-			"batch-5": make([]byte, 1),
-		}
-
-		err := db.SetBatch(data)
-
-		assert.Nil(t, err)
-	})
-}
-
 func TestStreamData(t *testing.T) {
 	db := getDb()
 
 	t.Run("should stream data", func(t *testing.T) {
+		const DataLen = 3
 		resultData := make(map[string][]byte)
-		data := map[string][]byte{
-			"stream-1": make([]byte, 1),
-			"stream-2": make([]byte, 1),
-			"stream-3": make([]byte, 1),
+		writer := db.NewWriter()
+		defer writer.Close()
+
+		for i := 0; i < DataLen; i++ {
+			writer.Write(&pb.DataItem{
+				Key:  fmt.Sprintf("stream-%d", i+1),
+				Data: make([]byte, 1),
+			})
 		}
-		db.SetBatch(data)
+		writer.Commit()
 
 		err := db.ReadDataByPrefix(context.TODO(), "stream-", func(item *pb.DataItem) error {
 			resultData[item.Key] = item.Data
@@ -132,7 +119,7 @@ func TestStreamData(t *testing.T) {
 		})
 
 		assert.Nil(t, err, fmt.Sprintf("%v", err))
-		assert.Equal(t, len(data), len(resultData))
+		assert.Equal(t, DataLen, len(resultData))
 	})
 }
 

@@ -28,9 +28,10 @@ var (
 )
 
 const (
-	DbName      = "bench_v2"
-	PayloadSize = 256
-	NumGoProc   = 20
+	DbName          = "bench_v2"
+	PayloadSize     = 256
+	NumGoProc       = 20
+	BatchItemPrefix = "batch-item"
 )
 
 func benchSet(target string) {
@@ -91,7 +92,7 @@ func benchGet(target string) {
 	}
 }
 
-func benchSetBatch(target string) {
+func benchSendStream(target string) {
 	conn, err := grpc.Dial(target, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
@@ -105,27 +106,43 @@ func benchSetBatch(target string) {
 	fmt.Printf("num goroutines: %d\n", 1)
 
 	for i := 0; i < len(batchIts); i++ {
-		data := make(map[string][]byte)
-
-		for j := 0; j < batchIts[i]; j++ {
-			data[fmt.Sprintf("batch-%d", j)] = make([]byte, PayloadSize)
-		}
-
-		start := time.Now()
-
-		_, err := client.SetBatch(context.TODO(), &pb.SetBatchRequest{
-			Db:   DbName,
-			Data: data,
-		})
+		stream, err := client.CreateSendStream(context.TODO())
 		if err != nil {
 			panic(err)
 		}
 
-		fmt.Printf("SetBatch_%d: %s\n", batchIts[i], time.Since(start))
+		// First message must contain db name
+		dbReq := &pb.SendStreamReq{
+			Db: DbName,
+		}
+		if err := stream.Send(dbReq); err != nil {
+			panic(err)
+		}
+
+		start := time.Now()
+		for j := 0; j < batchIts[i]; j++ {
+			req := &pb.SendStreamReq{
+				Item: &pb.DataItem{
+					Key:  fmt.Sprintf("%s-%d-%d", BatchItemPrefix, i, j),
+					Data: make([]byte, PayloadSize),
+				},
+			}
+
+			if err := stream.Send(req); err != nil {
+				panic(err)
+			}
+		}
+
+		_, err = stream.CloseAndRecv()
+		if err != nil {
+			panic(err)
+		}
+
+		fmt.Printf("SendBatch_%d: %s\n", batchIts[i], time.Since(start))
 	}
 }
 
-func benchGetStreamData(target string) {
+func benchReadStream(target string) {
 	conn, err := grpc.Dial(target, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		log.Fatalf("did not connect: %v", err)
@@ -139,24 +156,10 @@ func benchGetStreamData(target string) {
 	fmt.Printf("num goroutines: %d\n", 1)
 
 	for i := 0; i < len(batchIts); i++ {
-		data := make(map[string][]byte)
-
-		for j := 0; j < batchIts[i]; j++ {
-			data[fmt.Sprintf("batch-%d-%d", i, j)] = make([]byte, PayloadSize)
-		}
-
-		_, err := client.SetBatch(context.TODO(), &pb.SetBatchRequest{
-			Db:   DbName,
-			Data: data,
-		})
-		if err != nil {
-			panic(err)
-		}
-
-		prefix := fmt.Sprintf("batch-%d-", i)
+		prefix := fmt.Sprintf("%s-%d-", BatchItemPrefix, i)
 
 		start := time.Now()
-		stream, errGet := client.GetDataStream(context.TODO(), &pb.DataStreamRequest{
+		stream, errGet := client.CreateReadStream(context.TODO(), &pb.ReadStreamReq{
 			Db:     DbName,
 			Prefix: &prefix,
 		})
@@ -174,7 +177,7 @@ func benchGetStreamData(target string) {
 			}
 		}
 
-		fmt.Printf("GetDataStream_%d: %s\n", batchIts[i], time.Since(start))
+		fmt.Printf("ReadStream_%d: %s\n", batchIts[i], time.Since(start))
 	}
 }
 
@@ -207,8 +210,8 @@ func Run(target string) {
 	fmt.Printf("os: %s/%s\n", runtime.GOOS, runtime.GOARCH)
 	fmt.Printf("cpus: %d\n", runtime.NumCPU())
 
-	benchSet(target)
-	benchGet(target)
-	benchSetBatch(target)
-	benchGetStreamData(target)
+	//benchSet(target)
+	//benchGet(target)
+	benchSendStream(target)
+	benchReadStream(target)
 }

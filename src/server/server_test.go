@@ -84,18 +84,25 @@ func TestDataServer(t *testing.T) {
 		assert.Nil(t, err, fmt.Sprintf("%v", err))
 	})
 
-	t.Run("should call set batch", func(t *testing.T) {
-		_, err := client.SetBatch(context.TODO(), &pb.SetBatchRequest{
-			Db:   "test-db",
-			Data: make(map[string][]byte),
+	t.Run("should call create send stream", func(t *testing.T) {
+		stream, err := client.CreateSendStream(context.TODO())
+		if err != nil {
+			panic(err)
+		}
+
+		sendErr := stream.Send(&pb.SendStreamReq{
+			Db: "test-db",
 		})
 
+		_, err = stream.CloseAndRecv()
+
 		assert.Nil(t, err, fmt.Sprintf("%v", err))
+		assert.Nil(t, sendErr, fmt.Sprintf("%v", err))
 	})
 
 	t.Run("should call get data stream", func(t *testing.T) {
 		prefix := "data-stream-"
-		res, err := client.GetDataStream(context.TODO(), &pb.DataStreamRequest{
+		res, err := client.CreateReadStream(context.TODO(), &pb.ReadStreamReq{
 			Db:     "test-db",
 			Prefix: &prefix,
 		})

@@ -10,8 +10,8 @@ service Data {
     rpc Get(KeyRequest) returns (GetResult) {}
     rpc Delete(KeyRequest) returns (EmptyResult) {}
     rpc DeleteByPrefix(PrefixRequest) returns (EmptyResult) {}
-    rpc SetBatch(SetBatchRequest) returns (EmptyResult) {}
-    rpc GetDataStream(DataStreamRequest) returns (stream DataItem) {}
+    rpc CreateReadStream(ReadStreamReq) returns (stream DataItem) {}
+    rpc CreateSendStream(stream SendStreamReq) returns (EmptyResult) {}
 }
 
 service Db {
@@ -45,11 +45,6 @@ message PrefixRequest {
     string prefix = 2;
 }
 
-message SetBatchRequest {
-    string db = 1;
-    map<string, bytes> data = 2;
-}
-
 message CreateDbRequest {
     string name = 1;
     bool inMemory = 2;
@@ -67,9 +62,14 @@ message PingResult {
 
 message EmptyResult {}
 
-message DataStreamRequest {
+message ReadStreamReq {
     string db = 1;
     optional string prefix = 2;
+}
+
+message SendStreamReq {
+    DataItem item = 1;
+    string db = 2;
 }
 
 message DataItem {

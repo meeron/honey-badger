@@ -109,17 +109,10 @@ func (db *Database) DeleteByPrefix(prefix string) error {
 	return db.b.DropPrefix([]byte(prefix))
 }
 
-func (db *Database) SetBatch(data map[string][]byte) error {
-	w := db.b.NewWriteBatch()
-	defer w.Cancel()
-
-	for key, value := range data {
-		if err := w.Set([]byte(key), value); err != nil {
-			return err
-		}
+func (db *Database) NewWriter() *Writer {
+	return &Writer{
+		bw: db.b.NewWriteBatch(),
 	}
-
-	return w.Flush()
 }
 
 func (db *Database) ReadDataByPrefix(ctx context.Context, prefix string, callback ReadDataClbk) error {
