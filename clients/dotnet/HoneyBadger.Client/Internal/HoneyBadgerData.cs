@@ -43,16 +43,6 @@ internal class HoneyBadgerData : IHoneyBadgerData
         return GetAsync<string>(db, key, data => data.ToStringUtf8(), ct);
     }
 
-    public Task<IReadOnlyDictionary<string, byte[]>> GetByPrefixAsync(string db, string prefix)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task<IReadOnlyDictionary<string, string>> GetStringsByPrefixAsync(string db, string prefix)
-    {
-        throw new NotImplementedException();
-    }
-
     public Task SetAsync(string db, string key, byte[] data, TimeSpan? ttl = null, CancellationToken ct = default)
     {
         Guard.NotNullOrEmpty(nameof(db), db);
@@ -84,16 +74,6 @@ internal class HoneyBadgerData : IHoneyBadgerData
         Guard.NotNullOrEmpty(nameof(data), data);
         
         return SetAsync(db, key, ByteString.CopyFromUtf8(data), ct, ttl);
-    }
-
-    public Task SetBatchAsync(string db, IReadOnlyDictionary<string, byte[]> data)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Task SetBatchAsync(string db, IReadOnlyDictionary<string, string> data)
-    {
-        throw new NotImplementedException();
     }
 
     public async Task DeleteAsync(string db, string key, CancellationToken ct = default)
@@ -132,6 +112,19 @@ internal class HoneyBadgerData : IHoneyBadgerData
         }, cancellationToken: ct);
     }
 
+    public async Task<SendStream> CreateSendStream(string db)
+    {
+        var stream = _dataClient.CreateSendStream();
+        
+        // First message need to have database name
+        await stream.RequestStream.WriteAsync(new SendStreamReq
+        {
+            Db = db,
+        });
+        
+        return new SendStream(stream);
+    }
+
     private async Task SetAsync(string db, string key, ByteString data, CancellationToken ct, TimeSpan? ttl = null)
     {
         await _dataClient.SetAsync(new SetRequest
@@ -155,18 +148,5 @@ internal class HoneyBadgerData : IHoneyBadgerData
         return res.Hit
             ? converter(res.Data)
             : null;
-    }
-    
-    private async Task<IReadOnlyDictionary<string, T>> GetByPrefix<T>(string db, string prefix, Func<ByteString, T> converter)
-    {
-        throw new NotImplementedException();
-    }
-    
-    private async Task SetBatchAsync<T>(
-        string db,
-        IReadOnlyDictionary<string, T> data,
-        Func<T, ByteString> converter)
-    {
-        throw new NotImplementedException();
     }
 }

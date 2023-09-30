@@ -76,30 +76,6 @@ public class DataTests
         // Assert
         dbData.ShouldBeNull();
     }
-
-    [Fact]
-    public async Task GetByPrefix()
-    {
-        // Arrange
-        const string prefix = "prefixed-";
-        const int count = 3;
-
-        for (var i = 0; i < count; i++)
-        {
-            await _data.SetAsync(Db, $"{prefix}{i}", $"data {i}");
-        }
-        
-        // Act
-        var data = await _data.GetStringsByPrefixAsync(Db, prefix);
-        
-        // Assert
-        data.Count.ShouldBe(count);
-        
-        for (var i = 0; i < count; i++)
-        {
-            data[$"{prefix}{i}"].ShouldBe($"data {i}");
-        }
-    }
     
     [Fact]
     public async Task DeleteByPrefix()
@@ -114,49 +90,27 @@ public class DataTests
         
         // Act
         await _data.DeleteByPrefixAsync(Db, prefix);
-        var data = await _data.GetStringsByPrefixAsync(Db, prefix);
+        throw new NotImplementedException();
         
         // Assert
-        data.Count.ShouldBe(0);
+        //data.Count.ShouldBe(0);
     }
 
     [Fact]
-    public async Task GetSetByteArrayBatch()
+    public async Task SendWithStream()
     {
         // Arrange
-        await _data.SetBatchAsync(Db, new Dictionary<string, byte[]>
-        {
-            { "batch-b-1", new byte[] { 1, 2, 3 } },
-            { "batch-b-2", new byte[] { 4, 5, 6 } },
-            { "batch-b-3", new byte[] { 7, 8, 9 } }
-        });
+        const string key = "test-stream";
+        const string data = "this is test data";
         
         // Act
-        var data = await _data.GetByPrefixAsync(Db, "batch-b-");
+        var stream = await _data.CreateSendStream(Db);
+        await stream.Write(key, data);
+        await stream.Close();
+
+        var resultData = await _data.GetStringAsync(Db, key);
         
         // Assert
-        data["batch-b-1"].ShouldBe(new byte[] { 1, 2, 3 });
-        data["batch-b-2"].ShouldBe(new byte[] { 4, 5, 6 });
-        data["batch-b-3"].ShouldBe(new byte[] { 7, 8, 9 });
-    }
-    
-    [Fact]
-    public async Task GetSetStringBatch()
-    {
-        // Arrange
-        await _data.SetBatchAsync(Db, new Dictionary<string, string>
-        {
-            { "batch-s-1", "data1" },
-            { "batch-s-2", "data2" },
-            { "batch-s-3", "data3" }
-        });
-        
-        // Act
-        var data = await _data.GetStringsByPrefixAsync(Db, "batch-s-");
-        
-        // Assert
-        data["batch-s-1"].ShouldBe("data1");
-        data["batch-s-2"].ShouldBe("data2");
-        data["batch-s-3"].ShouldBe("data3");
+        resultData.ShouldBe(data);
     }
 }
