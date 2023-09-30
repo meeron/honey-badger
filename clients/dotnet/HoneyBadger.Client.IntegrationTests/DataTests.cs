@@ -113,4 +113,46 @@ public class DataTests
         // Assert
         resultData.ShouldBe(data);
     }
+
+    [Fact]
+    public async Task ReadStringAsync()
+    {
+        // Arrange
+        var result = new Dictionary<string, string>();
+        
+        await _data.SetAsync(Db, "read-string-1", "test data 1");
+        await _data.SetAsync(Db, "read-string-2", "test data 2");
+        
+        // Act
+        await foreach (var item in _data.ReadStringAsync(Db, "read-string-"))
+        {
+            result.Add(item.Key, item.Value);
+        }
+        
+        // Assert
+        result.Count.ShouldBe(2);
+        result["read-async-string-1"].ShouldBe("test data 1");
+        result["read-async-string-2"].ShouldBe("test data 2");
+    }
+    
+    [Fact]
+    public async Task ReadAsync()
+    {
+        // Arrange
+        var result = new Dictionary<string, byte[]>();
+        
+        await _data.SetAsync(Db, "read-bytes-1", new byte[] { 1 });
+        await _data.SetAsync(Db, "read-bytes-2", new byte[] { 2 });
+        
+        // Act
+        await foreach (var item in _data.ReadAsync(Db, "read-bytes-"))
+        {
+            result.Add(item.Key, item.Value);
+        }
+        
+        // Assert
+        result.Count.ShouldBe(2);
+        result["read-bytes-1"].ShouldBe(new byte[] { 1 });
+        result["read-bytes-2"].ShouldBe(new byte[] { 2 });
+    }
 }

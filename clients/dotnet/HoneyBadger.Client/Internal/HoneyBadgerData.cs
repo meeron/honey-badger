@@ -125,6 +125,12 @@ internal class HoneyBadgerData : IHoneyBadgerData
         return new SendStream(stream);
     }
 
+    public IAsyncEnumerable<KeyValuePair<string, byte[]>> ReadAsync(string db, string prefix) =>
+        ReadAsync(db, prefix, data => data.ToByteArray());
+    
+    public IAsyncEnumerable<KeyValuePair<string, string>> ReadStringAsync(string db, string prefix) =>
+        ReadAsync(db, prefix, data => data.ToStringUtf8());
+
     private async Task SetAsync(string db, string key, ByteString data, CancellationToken ct, TimeSpan? ttl = null)
     {
         await _dataClient.SetAsync(new SetRequest
@@ -148,5 +154,17 @@ internal class HoneyBadgerData : IHoneyBadgerData
         return res.Hit
             ? converter(res.Data)
             : null;
+    }
+    
+    private async IAsyncEnumerable<KeyValuePair<string, T>> ReadAsync<T>(string db, string prefix, Func<ByteString, T> converter)
+    {
+        using var stream = _dataClient.CreateReadStream(new ReadStreamReq { Db = db, Prefix = prefix });
+        
+        while (await stream.ResponseStream.MoveNext())
+        {
+            yield return new KeyValuePair<string, T>(
+                stream.ResponseStream.Current.Key,
+                converter(stream.ResponseStream.Current.Data));
+        }
     }
 }

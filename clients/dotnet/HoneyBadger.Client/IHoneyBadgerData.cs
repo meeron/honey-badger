@@ -21,4 +21,8 @@ public interface IHoneyBadgerData
     Task DeleteByPrefixAsync(string db, string prefix, CancellationToken ct = default);
 
     Task<SendStream> CreateSendStream(string db);
+
+    IAsyncEnumerable<KeyValuePair<string, byte[]>> ReadAsync(string db, string prefix);
+    
+    IAsyncEnumerable<KeyValuePair<string, string>> ReadStringAsync(string db, string prefix);
 }
