@@ -138,7 +138,7 @@ func benchSendStream(target string) {
 			panic(err)
 		}
 
-		fmt.Printf("SendBatch_%d: %s\n", batchIts[i], time.Since(start))
+		fmt.Printf("SendWithStream_%d: %s\n", batchIts[i], time.Since(start))
 	}
 }
 
@@ -177,7 +177,7 @@ func benchReadStream(target string) {
 			}
 		}
 
-		fmt.Printf("ReadStream_%d: %s\n", batchIts[i], time.Since(start))
+		fmt.Printf("ReadWithStream_%d: %s\n", batchIts[i], time.Since(start))
 	}
 }
 
@@ -210,8 +210,8 @@ func Run(target string) {
 	fmt.Printf("os: %s/%s\n", runtime.GOOS, runtime.GOARCH)
 	fmt.Printf("cpus: %d\n", runtime.NumCPU())
 
-	//benchSet(target)
-	//benchGet(target)
+	benchSet(target)
+	benchGet(target)
 	benchSendStream(target)
 	benchReadStream(target)
 }
