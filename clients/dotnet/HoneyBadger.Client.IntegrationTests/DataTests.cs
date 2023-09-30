@@ -90,10 +90,15 @@ public class DataTests
         
         // Act
         await _data.DeleteByPrefixAsync(Db, prefix);
-        throw new NotImplementedException();
-        
+
+        var data = new List<KeyValuePair<string, string>>();
+        await foreach (var item in _data.ReadStringAsync(Db, prefix))
+        {
+            data.Add(item);
+        }
+
         // Assert
-        //data.Count.ShouldBe(0);
+        data.Count.ShouldBe(0);
     }
 
     [Fact]
@@ -131,8 +136,8 @@ public class DataTests
         
         // Assert
         result.Count.ShouldBe(2);
-        result["read-async-string-1"].ShouldBe("test data 1");
-        result["read-async-string-2"].ShouldBe("test data 2");
+        result["read-string-1"].ShouldBe("test data 1");
+        result["read-string-2"].ShouldBe("test data 2");
     }
     
     [Fact]
