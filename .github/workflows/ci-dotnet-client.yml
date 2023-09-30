@@ -21,6 +21,6 @@ jobs:
     - name: Build server image
       run: make docker ver=test
     - name: Run server
-      run: docker run -d meeron/honey-badger:test
+      run: docker run -d -p 18950:18950  meeron/honey-badger:test
     - name: Build & test
       run: make test-dotnet-client c=Debug
