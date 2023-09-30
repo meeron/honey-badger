@@ -19,7 +19,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Protobuf Include="../../../honey_badger.proto" GrpcServices="HbClient" Link="../../../honey_badger.proto" />
+        <Protobuf Include="../../../honey_badger.proto" GrpcServices="Client" Link="../../../honey_badger.proto" />
     </ItemGroup>
 
     <ItemGroup>

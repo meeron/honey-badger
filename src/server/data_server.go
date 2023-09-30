@@ -2,6 +2,8 @@ package server
 
 import (
 	"context"
+	"errors"
+	"io"
 
 	"github.com/meeron/honey-badger/db"
 	"github.com/meeron/honey-badger/pb"
@@ -46,20 +48,6 @@ func (s *DataServer) Get(ctx context.Context, in *pb.KeyRequest) (*pb.GetResult,
 	return &pb.GetResult{Data: data, Hit: hit}, nil
 }
 
-func (s *DataServer) GetByPrefix(ctx context.Context, in *pb.PrefixRequest) (*pb.PrefixResult, error) {
-	db, err := s.dbCtx.GetDb(in.Db)
-	if err != nil {
-		return nil, err
-	}
-
-	data, err := db.GetByPrefix(ctx, in.Prefix)
-	if err != nil {
-		return nil, err
-	}
-
-	return &pb.PrefixResult{Data: data}, nil
-}
-
 func (s *DataServer) Delete(ctx context.Context, in *pb.KeyRequest) (*pb.EmptyResult, error) {
 	db, err := s.dbCtx.GetDb(in.Db)
 	if err != nil {
@@ -86,15 +74,54 @@ func (s *DataServer) DeleteByPrefix(ctx context.Context, in *pb.PrefixRequest) (
 	return &pb.EmptyResult{}, nil
 }
 
-func (s *DataServer) SetBatch(ctx context.Context, in *pb.SetBatchRequest) (*pb.EmptyResult, error) {
+func (s *DataServer) CreateReadStream(in *pb.ReadStreamReq, stream pb.Data_CreateReadStreamServer) error {
 	db, err := s.dbCtx.GetDb(in.Db)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	if err := db.SetBatch(in.Data); err != nil {
-		return nil, err
+	if in.Prefix == nil {
+		return nil
 	}
 
-	return &pb.EmptyResult{}, nil
+	return db.ReadDataByPrefix(stream.Context(), *in.Prefix, stream.Send)
+}
+
+func (s *DataServer) CreateSendStream(stream pb.Data_CreateSendStreamServer) error {
+	dbItem, err := stream.Recv()
+	if err != nil {
+		return err
+	}
+
+	if dbItem.Db == "" {
+		return errors.New("invalid db: database should be in first message")
+	}
+
+	db, err := s.dbCtx.GetDb(dbItem.Db)
+	if err != nil {
+		return err
+	}
+
+	writer := db.NewWriter()
+	defer writer.Close()
+
+	for {
+		item, err := stream.Recv()
+		if err == io.EOF {
+			break
+		}
+		if err != nil {
+			return err
+		}
+
+		if err := writer.Write(item.Item); err != nil {
+			return err
+		}
+	}
+
+	if err := writer.Commit(); err != nil {
+		return err
+	}
+
+	return stream.SendAndClose(&pb.EmptyResult{})
 }

@@ -18,7 +18,9 @@ jobs:
       uses: actions/setup-dotnet@v1
       with:
         dotnet-version: '7.0.x'
+    - name: Build server image
+      run: make docker ver=test
     - name: Run server
-      run: docker run --name honey-badger -p 18950:18950 -d meeron/honey-badger:latest
+      run: docker run -d -p 18950:18950  meeron/honey-badger:test
     - name: Build & test
       run: make test-dotnet-client c=Debug

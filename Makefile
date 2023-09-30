@@ -15,7 +15,7 @@ bench: build
 	./bin/hb -bench 127.0.0.1:18950
 
 test:
-	cd src && go test ./... -v
+	cd src && go test ./... -v -race
 
 docker:
 	docker build --build-arg ver=$(ver) -t meeron/honey-badger:$(ver) -t meeron/honey-badger:latest .

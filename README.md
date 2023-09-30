@@ -41,7 +41,12 @@ docker run --name honey-badger -p 18950:18950 -d meeron/honey-badger:latest
 ```
 
 ### Client
-To connect to server you need gRPC client. Using [honey_badger.proto](https://github.com/meeron/honey-badger/blob/master/pb/honey_badger.proto) file you can generate one with your favorite [language](https://grpc.io/docs/languages/).
+Current official clients:
+* [.NET](https://www.nuget.org/packages/HoneyBadger.Client)
+
+Feel free to post na issue if you miss client for your favorite language.
+
+In the mean time you can use [honey_badger.proto](https://github.com/meeron/honey-badger/blob/master/honey_badger.proto) file to generate a client for any [language](https://grpc.io/docs/languages/).
 
 Check [server_test.go](https://github.com/meeron/honey-badger/blob/master/server/server_test.go) for examples in Go language.
 
@@ -97,9 +102,15 @@ Get_100000: 982.176458ms
 
 payload size: 256 bytes
 num goroutines: 1
-SetBatch_100000: 175.145125ms
-SetBatch_300000: 596.115083ms
-SetBatch_500000: 1.007408541s
+SendWithStream_100000: 212.652541ms
+SendWithStream_300000: 482.201958ms
+SendWithStream_500000: 805.415042ms
+
+payload size: 256 bytes
+num goroutines: 1
+ReadWithStream_100000: 100.984375ms
+ReadWithStream_300000: 316.02125ms
+ReadWithStream_500000: 532.293375ms
 ```
 
 The result `Set_30000: 293.691166ms` says that in 293ms 30k items has been sent to server

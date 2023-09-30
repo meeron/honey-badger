@@ -8,10 +8,10 @@ package hb;
 service Data {
     rpc Set(SetRequest) returns (EmptyResult) {}
     rpc Get(KeyRequest) returns (GetResult) {}
-    rpc GetByPrefix(PrefixRequest) returns (PrefixResult) {}
     rpc Delete(KeyRequest) returns (EmptyResult) {}
     rpc DeleteByPrefix(PrefixRequest) returns (EmptyResult) {}
-    rpc SetBatch(SetBatchRequest) returns (EmptyResult) {}
+    rpc CreateReadStream(ReadStreamReq) returns (stream DataItem) {}
+    rpc CreateSendStream(stream SendStreamReq) returns (EmptyResult) {}
 }
 
 service Db {
@@ -45,15 +45,6 @@ message PrefixRequest {
     string prefix = 2;
 }
 
-message PrefixResult {
-    map<string, bytes> data = 1;
-}
-
-message SetBatchRequest {
-    string db = 1;
-    map<string, bytes> data = 2;
-}
-
 message CreateDbRequest {
     string name = 1;
     bool inMemory = 2;
@@ -70,3 +61,18 @@ message PingResult {
 }
 
 message EmptyResult {}
+
+message ReadStreamReq {
+    string db = 1;
+    optional string prefix = 2;
+}
+
+message SendStreamReq {
+    DataItem item = 1;
+    string db = 2;
+}
+
+message DataItem {
+    string key = 1;
+    bytes data = 2;
+}

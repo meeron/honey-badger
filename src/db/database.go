@@ -6,6 +6,7 @@ import (
 
 	"github.com/dgraph-io/badger/v4"
 	"github.com/dgraph-io/ristretto/z"
+	hpb "github.com/meeron/honey-badger/pb"
 )
 
 type Database struct {
@@ -26,6 +27,8 @@ type DbStats struct {
 type DbMetrics struct {
 	KeysAdded uint64
 }
+
+type ReadDataClbk func(*hpb.DataItem) error
 
 func (db *Database) Get(key string) ([]byte, bool, error) {
 	txn := db.b.NewTransaction(false)
@@ -106,12 +109,16 @@ func (db *Database) DeleteByPrefix(prefix string) error {
 	return db.b.DropPrefix([]byte(prefix))
 }
 
-func (db *Database) GetByPrefix(ctx context.Context, prefix string) (map[string][]byte, error) {
-	res := make(map[string][]byte)
+func (db *Database) NewWriter() *Writer {
+	return &Writer{
+		bw: db.b.NewWriteBatch(),
+	}
+}
 
+func (db *Database) ReadDataByPrefix(ctx context.Context, prefix string, callback ReadDataClbk) error {
 	stream := db.b.NewStream()
 
-	stream.LogPrefix = "GetByPrefix"
+	stream.LogPrefix = "ReadDataByPrefix"
 	stream.Prefix = []byte(prefix)
 	stream.Send = func(buf *z.Buffer) error {
 		list, err := badger.BufferToKVList(buf)
@@ -120,24 +127,17 @@ func (db *Database) GetByPrefix(ctx context.Context, prefix string) (map[string]
 		}
 
 		for _, kv := range list.Kv {
-			res[string(kv.Key)] = kv.Value
+			item := hpb.DataItem{
+				Key:  string(kv.Key),
+				Data: kv.Value,
+			}
+			if err := callback(&item); err != nil {
+				return err
+			}
 		}
 
 		return nil
 	}
 
-	return res, stream.Orchestrate(ctx)
-}
-
-func (db *Database) SetBatch(data map[string][]byte) error {
-	w := db.b.NewWriteBatch()
-	defer w.Cancel()
-
-	for key, value := range data {
-		if err := w.Set([]byte(key), value); err != nil {
-			return err
-		}
-	}
-
-	return w.Flush()
+	return stream.Orchestrate(ctx)
 }
