@@ -1,3 +1,6 @@
+# !! OBSOLETE !!
+This repository is obsolete. New repository: https://github.com/honey-badger-io/honey-badger
+
 # Honey Badger
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/meeron/honey-badger)](https://goreportcard.com/report/github.com/meeron/honey-badger)
